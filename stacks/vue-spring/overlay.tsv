@@ -1,0 +1,40 @@
+# overlay.tsv — warstwa stosu vue-spring (Vue 3 + Spring Boot; wzorzec: cn-projects)
+#
+# Format (kolumny rozdzielone TABEM):  <op>\t<cel w .claude/>\t<zrodlo w stacks/vue-spring/>
+#   replace  — bierzemy plik upstreamu na wlasnosc (baseline pilnuje driftu)
+#   new      — plik, ktorego upstream nie ma (kolizja = blad)
+#   append   — fragment dopisywany do pliku upstreamu miedzy markerami stack:<id>
+#   delete   — usuwamy plik upstreamu; cel z ukosnikiem na koncu = caly katalog
+
+# --- Agenci-buildery: te same role, inny stos (~10 linii roznicy na pliku) ---
+replace	.claude/agents/feature-builder-ui.md	files/.claude/agents/feature-builder-ui.md
+replace	.claude/agents/feature-builder-data.md	files/.claude/agents/feature-builder-data.md
+replace	.claude/agents/feature-builder-fullstack.md	files/.claude/agents/feature-builder-fullstack.md
+
+# --- Skille technologiczne stosu (upstream ich nie ma) ---
+new	.claude/rules/cn-conventions.md	files/.claude/rules/cn-conventions.md
+new	.claude/skills/observability-guidelines/SKILL.md	files/.claude/skills/observability-guidelines/SKILL.md
+new	.claude/skills/observability-guidelines/resources/backend-logging.md	files/.claude/skills/observability-guidelines/resources/backend-logging.md
+new	.claude/skills/observability-guidelines/resources/frontend-errors.md	files/.claude/skills/observability-guidelines/resources/frontend-errors.md
+new	.claude/skills/security/resources/owasp-spring-vue.md	files/.claude/skills/security/resources/owasp-spring-vue.md
+new	.claude/skills/spring-boot-guidelines/SKILL.md	files/.claude/skills/spring-boot-guidelines/SKILL.md
+new	.claude/skills/spring-boot-guidelines/resources/configuration.md	files/.claude/skills/spring-boot-guidelines/resources/configuration.md
+new	.claude/skills/spring-boot-guidelines/resources/maven-build.md	files/.claude/skills/spring-boot-guidelines/resources/maven-build.md
+new	.claude/skills/spring-boot-guidelines/resources/persistence.md	files/.claude/skills/spring-boot-guidelines/resources/persistence.md
+new	.claude/skills/spring-boot-guidelines/resources/rest-api.md	files/.claude/skills/spring-boot-guidelines/resources/rest-api.md
+new	.claude/skills/spring-boot-guidelines/resources/testing.md	files/.claude/skills/spring-boot-guidelines/resources/testing.md
+new	.claude/skills/vue-tailwind-guidelines/SKILL.md	files/.claude/skills/vue-tailwind-guidelines/SKILL.md
+new	.claude/skills/vue-tailwind-guidelines/resources/component-patterns.md	files/.claude/skills/vue-tailwind-guidelines/resources/component-patterns.md
+new	.claude/skills/vue-tailwind-guidelines/resources/composables.md	files/.claude/skills/vue-tailwind-guidelines/resources/composables.md
+new	.claude/skills/vue-tailwind-guidelines/resources/forms-validation.md	files/.claude/skills/vue-tailwind-guidelines/resources/forms-validation.md
+new	.claude/skills/vue-tailwind-guidelines/resources/styling-guide.md	files/.claude/skills/vue-tailwind-guidelines/resources/styling-guide.md
+new	.claude/skills/vue-tailwind-guidelines/resources/testing.md	files/.claude/skills/vue-tailwind-guidelines/resources/testing.md
+
+# --- Reguly: upstreamowe zostaja, stos dopisuje swoja sekcje ---
+append	.claude/rules/coding-rules.md	fragments/coding-rules-stos.md
+
+# --- Wycofane skille upstreamu (myliłyby buildera i reviewera na tym stosie) ---
+delete	.claude/skills/tailwind-react-guidelines/
+delete	.claude/skills/supabase-dev-guidelines/
+delete	.claude/skills/security/resources/owasp-react-supabase.md
+
