@@ -1,0 +1,34 @@
+stack: vue-spring
+base: main 255bdde351e228ef78996bf684433f828d4cff6d
+data: 2026-10-29
+cele:
+  replace .claude/agents/feature-builder-ui.md
+  replace .claude/agents/feature-builder-data.md
+  replace .claude/agents/feature-builder-fullstack.md
+  replace .claude/agents/feature-builder-ui-figma.md
+  replace .claude/agents/feature-builder-fullstack-figma.md
+  new .claude/rules/cn-conventions.md
+  new .claude/skills/observability-guidelines/SKILL.md
+  new .claude/skills/observability-guidelines/resources/backend-logging.md
+  new .claude/skills/observability-guidelines/resources/frontend-errors.md
+  new .claude/skills/security/resources/owasp-spring-vue.md
+  new .claude/skills/spring-boot-guidelines/SKILL.md
+  new .claude/skills/spring-boot-guidelines/resources/configuration.md
+  new .claude/skills/spring-boot-guidelines/resources/maven-build.md
+  new .claude/skills/spring-boot-guidelines/resources/persistence.md
+  new .claude/skills/spring-boot-guidelines/resources/rest-api.md
+  new .claude/skills/spring-boot-guidelines/resources/testing.md
+  new .claude/skills/vue-tailwind-guidelines/SKILL.md
+  new .claude/skills/vue-tailwind-guidelines/resources/component-patterns.md
+  new .claude/skills/vue-tailwind-guidelines/resources/composables.md
+  new .claude/skills/vue-tailwind-guidelines/resources/forms-validation.md
+  new .claude/skills/vue-tailwind-guidelines/resources/styling-guide.md
+  new .claude/skills/vue-tailwind-guidelines/resources/testing.md
+  replace .claude/skills/security/SKILL.md
+  replace .claude/skills/security/resources/protokol-audytu.md
+  append .claude/rules/coding-rules.md
+  append .claude/skills/dev-plan/SKILL.md
+  delete .claude/skills/tailwind-react-guidelines/
+  delete .claude/skills/supabase-dev-guidelines/
+  delete .claude/skills/security/resources/owasp-react-supabase.md
+  delete .claude/skills/security/resources/auth-security-patterns.md

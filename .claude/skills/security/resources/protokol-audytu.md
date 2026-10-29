@@ -1,13 +1,13 @@
 # Protokół audytu bezpieczeństwa
 
-Protokół systematycznego audytu bezpieczeństwa projektu React 19 + Supabase + Edge Functions (review przed deployem, podejrzenie luki, audyt na prośbę operatora). Reguły dla kodu pisanego w trakcie implementacji są w `SKILL.md` tego skilla.
+Protokół systematycznego audytu bezpieczeństwa projektu Spring Boot + Vue 3 (review przed deployem, podejrzenie luki, audyt na prośbę operatora). Reguły dla kodu pisanego w trakcie implementacji są w `SKILL.md` tego skilla.
 
 ## Kiedy Uzywac
 
 Audyt to osobna praca, nie krok implementacji — piszacy kod stosuje reguly z `SKILL.md`, a review fazy ma wlasnego reviewera bezpieczenstwa.
 
 - Review bezpieczenstwa przed deployem na produkcje
-- Pre-deploy audit po wiekszych zmianach (nowe endpointy, zmiany auth/authz, nowe tabele, dane osobowe)
+- Pre-deploy audit po wiekszych zmianach (nowe endpointy, zmiany auth/authz, nowe tabele, dane osobowe, nowe integracje)
 - Podejrzenie o luke bezpieczenstwa w istniejacym kodzie
 - Audyt na prosbe operatora
 
@@ -20,44 +20,39 @@ Audyt to osobna praca, nie krok implementacji — piszacy kod stosuje reguly z `
 Znajdz wszystkie punkty wejscia danych od uzytkownika i zweryfikuj walidacje.
 
 1. **Zmapuj punkty wejscia:**
-   - Form actions (React Hook Form + Zod)
-   - API routes / Edge Functions (`req.json()`, `req.text()`, query params)
-   - URL parameters (React Router `useParams`, `useSearchParams`)
-   - File uploads
-2. **Sprawdz walidacje Zod** na kazdym punkcie wejscia:
-   - Czy schemat Zod istnieje?
+   - Kontrolery: `@RequestBody`, `@RequestParam`, `@PathVariable`, `@RequestHeader`
+   - Konsumenci kolejek, webhooki, callbacki z zewnatrz
+   - Formularze Vue (`BaseForm` + `src/utils/validators.ts`), parametry trasy (`useRoute().params`, `query`)
+   - File uploads (`MultipartFile`)
+2. **Sprawdz walidacje Jakarta** na kazdym punkcie wejscia:
+   - Czy parametr kontrolera ma `@Valid` i jest rekordem DTO (nie encja)?
    - Czy walidacja jest na granicy systemu (nie glebiej)?
-   - Czy typy sa restrykcyjne (`z.string().email()`, nie `z.string()`)?
-   - Czy sa limity dlugosci (`z.string().max(500)`)?
-3. **Szukaj brakujacej walidacji** -- kazdy `req.json()` bez Zod parse to finding.
+   - Czy ograniczenia sa restrykcyjne (`@Email`, `@Pattern`, nie goly `String`)?
+   - Czy sa limity dlugosci (`@Size(max = 500)`) zgodne z kolumna w migracji?
+3. **Szukaj brakujacej walidacji** -- kazdy `@RequestBody` bez `@Valid` to finding.
 
 ### SQL/Query Safety
 
-Supabase query builder jest domyslnie parametryzowany, ale sa pulapki.
+Spring Data i `@Query` z parametrami sa bezpieczne, ale sa pulapki.
 
-1. **Sprawdz wywolania `.rpc()`** -- czy funkcje PostgreSQL nie konkatenuja stringow w SQL
-2. **Sprawdz RLS** na kazdej tabeli:
-   - `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` -- czy jest?
-   - Czy sa policies dla SELECT, INSERT, UPDATE, DELETE?
-   - Czy policies uzywaja `(SELECT auth.uid())` (nie `auth.email()`)?
-3. **Sprawdz filtry** -- czy zapytania `.from()` maja odpowiednie `.eq()`, `.match()`
-4. **Sprawdz `.rpc()` z raw SQL** -- szukaj konkatenacji stringow wewnatrz funkcji PostgreSQL
-5. **Sprawdz funkcje SECURITY DEFINER** -- `SET search_path = ''`, EXECUTE odebrane od `PUBLIC` i `anon`, kontrola uprawnien w ciele
-6. **Sprawdz `with check`** w politykach INSERT/UPDATE -- czy nie jest slabszy niz `using`
-7. **Sprawdz kolumny chronione** (rola, status platnosci, wlasciciel) -- czy `authenticated` nie ma UPDATE na cala tabele bez triggera lub `grant update (kolumny)`
-8. **Sprawdz widoki** -- czy widok nad tabela z RLS ma `security_invoker = true`
+1. **Sprawdz `@Query` i `createNativeQuery`** -- czy nie konkatenuja stringow z inputem
+2. **Sprawdz `EntityManager.createQuery`** -- JPQL sklejany z inputem to injection jak w SQL
+3. **Sprawdz dynamiczne sortowanie i filtry** -- nazwa kolumny z inputu tylko przez whitelist -> `Sort`/`Pageable`
+4. **Sprawdz zapytania do innych silnikow** (Elasticsearch, Redis) -- czy fraza uzytkownika nie jest sklejana w JSON/komende
+5. **Sprawdz migracje Flyway** -- czy uprawnienia rol bazy sa minimalne, czy nie ma danych testowych z haslami
+6. **Sprawdz mass-assignment** -- czy zadna encja JPA nie jest `@RequestBody` ani nie wychodzi w odpowiedzi
 
 ### XSS Detection
 
-React domyslnie escapuje output, ale istnieja wyjatki.
+Vue domyslnie escapuje interpolacje, ale istnieja wyjatki.
 
-1. **Szukaj niebezpiecznego renderowania HTML** -- kazde uzycie raw HTML injection to potencjalny XSS
+1. **Szukaj `v-html`** -- kazde uzycie na danych spoza kodu to potencjalny XSS (czy jest DOMPurify?)
 2. **Sprawdz user-generated URLs:**
-   - `href={userInput}` -- czy jest walidacja protokolu? (`javascript:` protocol attack)
-   - `src={userInput}` -- czy jest whitelist domen?
+   - `:href="userInput"` -- czy jest walidacja protokolu? (`javascript:` protocol attack)
+   - `:src="userInput"` -- czy jest whitelist domen?
 3. **Content Security Policy** -- czy istnieje i czy jest restrykcyjna?
 4. **Third-party content** -- czy jest sandboxowany (iframe sandbox)?
-5. **Szukaj renderowania raw HTML** z zewnetrznych zrodel (markdown, CMS)
+5. **Szukaj renderowania raw HTML** z zewnetrznych zrodel (markdown, CMS) i deep-merge niezaufanych obiektow (prototype pollution)
 
 ### Auth/Authz Audit
 
@@ -67,42 +62,44 @@ Zmapuj endpointy vs wymagania autoryzacji.
 
 | Endpoint / Akcja | Anon | Authenticated | Owner | Admin |
 |-------------------|------|---------------|-------|-------|
-| GET /posts        | tak  | tak           | tak   | tak   |
-| POST /posts       | nie  | tak           | -     | tak   |
-| DELETE /posts/:id | nie  | nie           | tak   | tak   |
+| GET /api/v1/posts        | tak  | tak           | tak   | tak   |
+| POST /api/v1/posts       | nie  | tak           | -     | tak   |
+| DELETE /api/v1/posts/{id} | nie  | nie           | tak   | tak   |
 
-2. **Zweryfikuj RLS policies** -- czy odzwierciedlaja macierz dostepu
-3. **Edge Functions JWT** -- czy kazda chroniona funkcja ma `withSupabase({ auth: 'user' })` albo wywoluje `supabase.auth.getUser()` / `getClaims()`? Funkcje w trybie `'publishable'` i `'none'` -- czy maja wlasna kontrole (podpis webhooka na surowym ciele, limit)?
-4. **Sprawdz `getSession()` vs `getUser()`** -- `getSession()` nie weryfikuje tokena server-side
-5. **Sprawdz role-based access** -- rola z `app_metadata` lub tabeli rol, nie z `user_metadata` (edytowalne przez usera); brak hardcoded email/ID
-6. **Fail-closed** -- blad sprawdzenia dostepu = odmowa, nigdy przyznanie (A10:2025)
+2. **Zweryfikuj `SecurityFilterChain`** -- czy konczy sie `anyRequest().denyAll()`, czy `PUBLIC_ENDPOINTS` nie ma zbyt szerokich wzorcow (`/api/**`)
+3. **Zweryfikuj `@PreAuthorize` / `AuthorizationManager`** -- czy odzwierciedlaja macierz dostepu
+4. **Sprawdz weryfikacje JWT** -- `JwtDecoder` sprawdza podpis, `exp` i `iss`; zaden serwis nie parsuje tokena dekoderem base64
+5. **Sprawdz zrodlo tozsamosci i rol** -- tylko zweryfikowane claimy (`sub`, `userId`, `roles`), nie naglowek ani pole requestu; brak hardcoded email/ID
+6. **Sprawdz IDOR** -- kazdy endpoint z `{id}` porownuje wlasciciela zasobu z `sub` tokenu w serwisie
+7. **Fail-closed** -- blad sprawdzenia dostepu = odmowa, nigdy przyznanie (A10:2025)
 
 ### Sensitive Data Exposure
 
 Szukaj wyciekow danych wrazliwych.
 
 1. **Hardcoded secrets:**
-   - Szukaj: API keys, tokeny, hasla w kodzie zrodlowym
-   - Sprawdz `.env.example` -- czy nie zawiera prawdziwych wartosci
-   - Sprawdz git history -- `git log --diff-filter=A -- "*.env*"`
+   - Szukaj: API keys, tokeny, hasla w kodzie zrodlowym i `application*.yml` (dozwolone tylko `${VAR:default}` / Consul)
+   - Sprawdz `.env.example` i `application-test.yml` -- czy nie zawieraja prawdziwych wartosci
+   - Sprawdz git history -- `git log --diff-filter=A -- "*.env*" "*application*.yml"`
+   - Sprawdz zmienne `VITE_*` -- trafiaja do paczki przegladarki
 2. **Dane w logach:**
-   - `console.log` / `console.error` z obiektami user/session/error
-   - Struktury bledow Supabase wyciekaja info o schemacie DB
-3. **Service role key:**
-   - Czy `SUPABASE_SERVICE_ROLE_KEY` jest wyłącznie w Edge Functions?
-   - Czy nie jest w zmiennych `VITE_*`?
-4. **PII w Sentry:**
-   - Czy `captureException` nie wysyla danych osobowych?
-   - Czy `beforeSend` filtruje wrazliwe dane?
+   - `log.info/debug` z obiektami user/token/request; maskowanie w logback (DEV-502 w checkstyle)
+   - `console.*` we froncie z obiektami user/session/error
+3. **Actuator i narzedzia:**
+   - Czy `env`, `heapdump`, `configprops` sa niedostepne z zewnatrz?
+   - Czy springdoc/swagger jest wylaczony na produkcji?
+4. **Propagacja tokenu:**
+   - Czy Bearer idzie tylko do serwisow CN (interceptor z lista hostow)?
 5. **Odpowiedzi API:**
-   - Czy endpointy nie zwracaja wiecej danych niz potrzeba? (`select('*')` vs `select('id, name')`)
+   - Czy endpointy zwracaja rekordy DTO z potrzebnymi polami, nie encje?
+   - Czy bledy nie ujawniaja stack trace ani bledu Postgresa?
 
 ### OWASP Top 10 Compliance
 
-Przejdz kazda kategorie **OWASP Top 10:2025** pod katem naszego stacku. Zwroc uwage na zmiany 2025: SSRF wchloniety do A01, nowe A03 (Software Supply Chain -- m.in. klucz `service_role` dla agentow AI/MCP) i A10 (Mishandling of Exceptional Conditions -- fail-open, wyciek bledow).
+Przejdz kazda kategorie **OWASP Top 10:2025** pod katem naszego stacku. Zwroc uwage na zmiany 2025: SSRF wchloniety do A01 (u nas: `RestTemplate` na URL od uzytkownika), nowe A03 (Software Supply Chain -- Maven + npm, rejestry, pipeline) i A10 (Mishandling of Exceptional Conditions -- fail-open, wyciek bledow).
 
-Pelne mapowanie kategorii na stack React + Supabase + Edge Functions:
-**[Przewodnik: owasp-react-supabase.md](owasp-react-supabase.md)**
+Pelne mapowanie kategorii na stack Spring Boot + Vue:
+**[Przewodnik: owasp-spring-vue.md](owasp-spring-vue.md)**
 
 ---
 
@@ -112,16 +109,16 @@ Wagi odpowiadaja wagom pipeline'u: Krytyczna i Wysoka = P1, Srednia = P2, Niska 
 
 ```
 Krytyczna -- Exploit mozliwy w produkcji, wymaga natychmiastowej naprawy
-   Przyklady: RLS wylaczone na tabeli z PII, service_role key na froncie,
-   SQL injection w .rpc(), brak auth na endpoincie z danymi
+   Przyklady: SecurityFilterChain bez denyAll() z otwartym endpointem danych,
+   SQL/JPQL injection, sekret w application.yml, brak auth na endpoincie z danymi
 
 Wysoka -- Powazna luka, exploit mozliwy przy okreslonych warunkach
-   Przyklady: brak walidacji inputow na Edge Function, XSS przez
-   niebezpieczne renderowanie HTML z user content, getSession() do autoryzacji server-side
+   Przyklady: IDOR bez weryfikacji wlasciciela, @RequestBody bez @Valid,
+   v-html z user content, SSRF przez RestTemplate, actuator env/heapdump na zewnatrz
 
 Średnia -- Potencjalne ryzyko, wymaga analizy kontekstu
-   Przyklady: brak rate limiting, zbyt szerokie CORS, select('*') zamiast
-   konkretnych kolumn, brak CSP headers
+   Przyklady: brak rate limiting, zbyt szerokie CORS, encja w odpowiedzi
+   zamiast DTO, brak CSP headers, swagger na produkcji
 
 Niska -- Hardening, defense-in-depth
    Przyklady: brak Strict-Transport-Security header, outdated dependencies
@@ -180,7 +177,7 @@ Niska -- Hardening, defense-in-depth
 2. **Worst-case scenario** -- kazdy finding opisuj przez pryzmat "co najgorszego moze sie stac"
 3. **Zawsze podawaj rozwiazanie** -- finding bez remediation jest bezuzyteczny
 4. **Nie dismissuj jako pre-existing** -- istniejace luki sa nadal lukami
-5. **Weryfikuj, nie zakladaj** -- "Supabase domyslnie to robi" nie wystarczy, sprawdz konfiguracje
+5. **Weryfikuj, nie zakladaj** -- "Spring Security domyslnie to robi" nie wystarczy, sprawdz konfiguracje lancucha
 6. **Najmniejsze uprawnienia** -- kazdy komponent powinien miec minimum potrzebnych uprawnien
 7. **Defense in depth** -- jedna warstwa ochrony to za malo, waliduj na kazdej granicy
 8. **Dokumentuj zakres** -- jasno okresl co zostalo sprawdzone, a co nie
@@ -189,5 +186,4 @@ Niska -- Hardening, defense-in-depth
 
 ## Dokumentacja Referencyjna
 
-- **OWASP Top 10 dla naszego stacku** -- `owasp-react-supabase.md`
-- **Wzorce auth i bezpieczenstwa** -- `auth-security-patterns.md`
+- **OWASP Top 10 dla naszego stacku** -- `owasp-spring-vue.md`
