@@ -278,7 +278,7 @@ Słabe mechanizmy autentykacji i zarządzania tożsamością.
 - [ ] Front: cookie `secure` + `sameSite: 'strict'`, wygasanie zgodne z `exp` tokenu; 401 → wyczyszczenie tokenu i powrót do logowania (robi to `useFetchWrapper`)
 - [ ] Czas życia tokenu ograniczony; operacje krytyczne mogą wymagać re-autentykacji
 
-Szczegółowe wzorce: [auth-security-patterns.md](auth-security-patterns.md).
+Reguły dla pisanego kodu: sekcja „Spring Security i autoryzacja” w [SKILL.md](../SKILL.md).
 
 ---
 
@@ -337,7 +337,7 @@ połknięcie wyjątków, złe kody statusu.
 
 **Checklist:**
 - [ ] Autoryzacja **fail-closed** — wyjątek przy sprawdzaniu dostępu = 403/500, nigdy przepuszczenie
-- [ ] Zero pustych `catch` — loguj z kontekstem albo re-throw (patrz `coding-rules` §4)
+- [ ] Zero pustych `catch` — loguj z kontekstem albo re-throw (patrz sekcja Obsługa błędów w `coding-rules.md`)
 - [ ] `@RestControllerAdvice` mapuje wyjątki na spójny format `{ error: { code, message } }` — generyczny komunikat dla klienta, szczegóły do logu
 - [ ] Poprawne kody statusu: 400 walidacja, 401 brak/zły token, 403 brak uprawnień, 404 brak zasobu, 5xx błąd serwera
 - [ ] Łap KONKRETNE wyjątki i mapuj na błędy domenowe — nie ogólny `Exception`
@@ -378,4 +378,5 @@ try {
 | 6 | A10 Mishandling of Exceptional Conditions | Fail-open w autoryzacji, wyciek błędów do klienta |
 
 **Zobacz także:**
-- [auth-security-patterns.md](auth-security-patterns.md) — wzorce JWT, method security, token po stronie Vue
+- [SKILL.md](../SKILL.md) — reguły bezpieczeństwa dla pisanego kodu (Spring Security, JWT, DTO, Vue)
+- [protokol-audytu.md](protokol-audytu.md) — protokół audytu i format raportu
