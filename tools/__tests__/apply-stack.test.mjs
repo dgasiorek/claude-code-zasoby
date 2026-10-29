@@ -124,6 +124,41 @@ test('drugie apply nie duplikuje bloku append (idempotencja)', () => {
   rmSync(repo, { recursive: true, force: true })
 })
 
+// Upstream zawęża reguły frontmatterem `paths:` do swoich rozszerzeń (ts, sql). Blok dopisany na
+// końcu pliku tego nie zmieni, więc bez scalenia `paths` reguły nie ładują się przy .vue i .java.
+test('append z frontmatterem paths dopisuje brakujace wzorce do paths celu, bez dubli przy kolejnym apply', () => {
+  const repo = fixture()
+  zapisz(repo, '.claude/rules/coding-rules.md', '---\npaths:\n  - "**/*.ts"\n  - "**/*.sql"\n---\n\n# Reguly\n')
+  git(repo, 'commit', '-qam', 'upstream: paths')
+  zapisz(repo, 'stacks/test/fragments/coding-rules.md', '---\npaths:\n  - "**/*.sql"\n  - "**/*.java"\n---\n\n- regula stosu (Java 21)\n')
+  uruchom(repo, '--stack', 'test', '--accept-drift')
+
+  uruchom(repo, '--stack', 'test', '--apply')
+  const { kod } = uruchom(repo, '--stack', 'test', '--apply')
+  const reguly = readFileSync(join(repo, '.claude/rules/coding-rules.md'), 'utf8')
+
+  assert.equal(kod, 0)
+  assert.equal(
+    reguly,
+    '---\npaths:\n  - "**/*.ts"\n  - "**/*.sql"\n  - "**/*.java"\n---\n\n# Reguly\n\n' +
+      '<!-- stack:test:start -->\n\n- regula stosu (Java 21)\n<!-- stack:test:end -->\n',
+  )
+  rmSync(repo, { recursive: true, force: true })
+})
+
+test('append z paths na celu bez listy paths: konczy sie kodem 3 i nie dopisuje bloku', () => {
+  const repo = fixture()
+  zapisz(repo, 'stacks/test/fragments/coding-rules.md', '---\npaths:\n  - "**/*.java"\n---\n\n- regula stosu (Java 21)\n')
+  uruchom(repo, '--stack', 'test', '--accept-drift')
+
+  const { kod, out } = uruchom(repo, '--stack', 'test', '--apply')
+
+  assert.equal(kod, 3)
+  assert.match(out, /cel .*coding-rules\.md nie ma listy paths:/)
+  assert.equal(readFileSync(join(repo, '.claude/rules/coding-rules.md'), 'utf8'), '# Reguly\n\n- regula upstreamu\n')
+  rmSync(repo, { recursive: true, force: true })
+})
+
 test('zmiana nadpisywanego pliku w upstreamie zatrzymuje publikacje jako DRIFT', () => {
   const repo = fixture()
   uruchom(repo, '--stack', 'test', '--accept-drift')

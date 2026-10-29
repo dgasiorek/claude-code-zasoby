@@ -78,7 +78,7 @@ Kolumny rozdzielone **tabem**: `<op>` `<cel w .claude/>` `<źródło w stacks/<i
 |---|---|---|
 | `replace` | bierzemy plik upstreamu na własność | tak |
 | `new` | plik, którego upstream nie ma (kolizja = błąd, sygnał żeby zmienić na `replace`) | nie |
-| `append` | fragment dopisywany między markerami `<!-- stack:<id>:start/end -->`, idempotentnie | tak |
+| `append` | fragment dopisywany między markerami `<!-- stack:<id>:start/end -->`, idempotentnie; frontmatter fragmentu nie trafia do bloku — jego wpisy `paths:` dopisują się do listy `paths:` celu (cel bez tej listy = błąd) | tak |
 | `delete` | usuwamy plik upstreamu; cel z ukośnikiem = **cały katalog** | tak |
 
 `baseline.sha256` trzyma sha256 **upstreamowej** wersji każdego celu z chwili, gdy override był

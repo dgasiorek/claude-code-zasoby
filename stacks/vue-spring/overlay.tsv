@@ -10,6 +10,9 @@
 replace	.claude/agents/feature-builder-ui.md	files/.claude/agents/feature-builder-ui.md
 replace	.claude/agents/feature-builder-data.md	files/.claude/agents/feature-builder-data.md
 replace	.claude/agents/feature-builder-fullstack.md	files/.claude/agents/feature-builder-fullstack.md
+# Warianty z Figma MCP: ta sama treść co wyżej, frontmatter z narzędziami i skillami Figmy (jak w upstreamie)
+replace	.claude/agents/feature-builder-ui-figma.md	files/.claude/agents/feature-builder-ui-figma.md
+replace	.claude/agents/feature-builder-fullstack-figma.md	files/.claude/agents/feature-builder-fullstack-figma.md
 
 # --- Skille technologiczne stosu (upstream ich nie ma) ---
 new	.claude/rules/cn-conventions.md	files/.claude/rules/cn-conventions.md

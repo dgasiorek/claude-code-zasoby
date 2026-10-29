@@ -185,8 +185,34 @@ przytnij_puste_katalogi() {
   done
 }
 
+# Frontmatter fragmentu (`---` w 1. linii) nie trafia do bloku: jego wpisy `paths:` dopisujemy
+# do listy `paths:` celu, ktorych tam brak. Upstream zaweza reguly do swoich rozszerzen, a blok
+# na koncu pliku tego nie zmieni — bez scalenia regula nie laduje sie przy plikach stosu.
+scal_paths() {
+  local plik="$1" fragment="$2" wpisy tmp
+  wpisy="$(awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } /^  - / { print }' "$fragment")"
+  [[ -n "$wpisy" ]] || return 0
+  awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } $0 == "paths:" { jest = 1; exit } END { exit !jest }' "$plik" \
+    || { echo "BŁĄD: fragment $fragment ma paths:, a cel $plik nie ma listy paths: we frontmatterze" >&2; exit 3; }
+  tmp="$(mktemp)"
+  WPISY_PATHS="$wpisy" awk '
+    BEGIN { n = split(ENVIRON["WPISY_PATHS"], nowe, "\n") }
+    function domknij(   i) { for (i = 1; i <= n; i++) if (!(nowe[i] in obecne)) print nowe[i]; wLiscie = 0; zrobione = 1 }
+    wLiscie && /^  - / { obecne[$0] = 1; print; next }
+    wLiscie { domknij() }
+    !zrobione && $0 == "paths:" { wLiscie = 1 }
+    { print }
+  ' "$plik" >"$tmp"
+  mv "$tmp" "$plik"
+}
+
+tresc_fragmentu() {
+  awk 'NR == 1 && $0 == "---" { wFront = 1; next } wFront && $0 == "---" { wFront = 0; next } !wFront { print }' "$1"
+}
+
 dopisz_fragment() {
   local plik="$1" fragment="$2" start="$3" koniec="$4" tmp
+  scal_paths "$plik" "$fragment"
   tmp="$(mktemp)"
   if grep -qF -- "$start" "$plik"; then
     awk -v s="$start" -v e="$koniec" '
@@ -203,7 +229,7 @@ dopisz_fragment() {
   tmp="$(mktemp)"
   awk '{ bufor[NR] = $0 } END { ostatnia = NR; while (ostatnia > 0 && bufor[ostatnia] ~ /^[[:space:]]*$/) ostatnia--; for (i = 1; i <= ostatnia; i++) print bufor[i] }' "$plik" >"$tmp"
   mv "$tmp" "$plik"
-  { printf '\n%s\n' "$start"; cat "$fragment"; printf '%s\n' "$koniec"; } >>"$plik"
+  { printf '\n%s\n' "$start"; tresc_fragmentu "$fragment"; printf '%s\n' "$koniec"; } >>"$plik"
 }
 
 nalozOverlay() {
