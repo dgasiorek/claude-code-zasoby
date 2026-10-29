@@ -1,0 +1,436 @@
+{
+ "A-1": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne",
+   "R": "pelne",
+   "S": "brak"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 5
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true,
+   "R": true,
+   "S": false
+  },
+  "transkrypt": {
+   "dotarlo": {
+    "R": true,
+    "S": false
+   },
+   "narzedzia_migracje": [
+    "Bash:ls docs/active/mr-notatki-oferty 2>/dev/null; sed -n 1,200p ",
+    "Bash:sed -n 200,300p supabase/migrations/20260824171406_init_prof"
+   ],
+   "wywolania": 8,
+   "koszt_jedn": 324566,
+   "model": "claude-opus-5-5"
+  },
+  "pozycje": null
+ },
+ "A-2": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne",
+   "R": "pelne",
+   "S": "brak"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 6
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true,
+   "R": true,
+   "S": false
+  },
+  "transkrypt": {
+   "dotarlo": {
+    "R": true,
+    "S": false
+   },
+   "narzedzia_migracje": [
+    "Bash:cd /private/tmp/claude-501/-Users-kacper-trzepiecinski-Docum",
+    "Bash:cd /private/tmp/claude-501/-Users-kacper-trzepiecinski-Docum",
+    "Bash:cd /private/tmp/claude-501/-Users-kacper-trzepiecinski-Docum"
+   ],
+   "wywolania": 8,
+   "koszt_jedn": 290254,
+   "model": "claude-opus-5-5"
+  },
+  "pozycje": null
+ },
+ "A-3": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne",
+   "R": "pelne",
+   "S": "brak"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 6
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true,
+   "R": true,
+   "S": false
+  },
+  "transkrypt": {
+   "dotarlo": {
+    "R": true,
+    "S": false
+   },
+   "narzedzia_migracje": [
+    "Bash:cd /private/tmp/claude-501/-Users-kacper-trzepiecinski-Docum",
+    "Bash:cd /private/tmp/claude-501/-Users-kacper-trzepiecinski-Docum"
+   ],
+   "wywolania": 8,
+   "koszt_jedn": 307442,
+   "model": "claude-opus-5-5"
+  },
+  "pozycje": null
+ },
+ "D100-1": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 11
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 10,
+   "M2": 30,
+   "M3": 50,
+   "M4": 70,
+   "M5": 90
+  }
+ },
+ "D100-2": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 13
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 10,
+   "M2": 30,
+   "M3": 50,
+   "M4": 70,
+   "M5": 90
+  }
+ },
+ "D100-3": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 9
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 10,
+   "M2": 30,
+   "M3": 50,
+   "M4": 70,
+   "M5": 90
+  }
+ },
+ "D100-4": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 14
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 10,
+   "M2": 30,
+   "M3": 50,
+   "M4": 70,
+   "M5": 90
+  }
+ },
+ "D100-5": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 10
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 10,
+   "M2": 30,
+   "M3": 50,
+   "M4": 70,
+   "M5": 90
+  }
+ },
+ "D400-1": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 9
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 40,
+   "M2": 120,
+   "M3": 200,
+   "M4": 280,
+   "M5": 360
+  }
+ },
+ "D400-2": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 7
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 40,
+   "M2": 120,
+   "M3": 200,
+   "M4": 280,
+   "M5": 360
+  }
+ },
+ "D400-3": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 7
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 40,
+   "M2": 120,
+   "M3": 200,
+   "M4": 280,
+   "M5": 360
+  }
+ },
+ "D400-4": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 7
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 40,
+   "M2": 120,
+   "M3": 200,
+   "M4": 280,
+   "M5": 360
+  }
+ },
+ "D400-5": {
+  "ocena": {
+   "M1": "pelne",
+   "M2": "pelne",
+   "M3": "pelne",
+   "M4": "pelne",
+   "M5": "pelne"
+  },
+  "info": {
+   "pliki_ts": 2,
+   "testy": 1,
+   "sql": 1,
+   "funkcje_eksport": 2,
+   "nazwy_testow": 7
+  },
+  "gdziekolwiek": {
+   "M1": true,
+   "M2": true,
+   "M3": true,
+   "M4": true,
+   "M5": true
+  },
+  "transkrypt": {},
+  "pozycje": {
+   "M1": 40,
+   "M2": 120,
+   "M3": 200,
+   "M4": 280,
+   "M5": 360
+  }
+ }
+}

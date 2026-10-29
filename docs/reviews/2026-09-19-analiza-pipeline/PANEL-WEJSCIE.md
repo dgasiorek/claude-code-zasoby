@@ -1,0 +1,482 @@
+# PANEL-WEJSCIE — pakiet wejściowy panelu etapu 4
+
+**Data:** 2026-09-21 (domknięcie D4). **Charakter:** sama kompilacja — każdy zapis ma źródło w HANDOFF.md (6a), ETAP1/1B/2/3 albo POMIARY;
+ten plik NIE wprowadza żadnej nowej decyzji. Gdy dwa dokumenty mówią co innego, obowiązuje precedens z §1. Sekcja §12 (telemetria) dochodzi w D5.
+**Dla kogo:** dla 3 projektantów, 3 sędziów, sceptyka i syntezy w panelu etapu 4 — jako jedyny plik „co obowiązuje", zamiast czytania pięciu rozstrzygnięć.
+
+## 0. Co robi panel i kto co czyta
+
+- **[2026-09-23, HANDOFF 6a pkt 23 — OBOWIĄZUJE: PANEL DECYZYJNY zamiast panelu projektowego opisanego niżej.]** Krok 0 w sesji głównej skryptami, bez agentów:
+  lista OTWARTYCH decyzji z opcjami i danymi (reszta = stały szkielet z §2), zestaw historyczny (68 ucieczek z ETAP1 §3 + uwagi B bota z klasą z
+  `dane/coderabbit/klasyfikacja-574.csv`), skrypt kosztu projektu (model kosztu etapu 0 + starty klas z mini-runu (e)). Run 1: projektanci PER ARCHITEKTURA
+  REVIEW (nie per priorytet), każdy broni swojej i w jej ramach rozstrzyga pozostałe otwarte decyzje; koszt liczy skrypt. Run 2: jeden sędzia jakości na
+  zestawie historycznym (przypadek × projekt → złapany / czym / nie) zamiast trzech sędziów. Run 3: sceptyk asymetryczny per otwarta decyzja, zarzut tylko
+  z dowodem. Synteza w sesji głównej = rekord per decyzja (wybór, dlaczego, metryka z mapy walidacji §12, warunek odwrotu) → plan iteracji etapu 5.
+  ~5–7 agentów na Opus 5.5. Z opisu niżej obowiązują nadal: materiał wejściowy projektantów, wyłączenie werdyktów workflow-A, kryteria koszt i jakość
+  (koszt wdrożenia NIE jest kryterium), „panel nie buduje”, plugin nie jest wariantem.
+- **Skład pierwotny (HANDOFF §2 wiersz 4, §6 pkt 5) — ZASTĄPIONY przez punkt wyżej:** 3 niezależne projekty pipeline'u „po" — **minimalistyczny** (minimalny koszt), **jakość-najpierw**
+  (maksymalna jakość), **hybrydowy** — → 3 sędziów → sceptyk (adwersarialna krytyka) na zwycięzcę → synteza. ~8 agentów, **wszyscy na Opus 5.5** (decyzja operatora
+  2026-09-23, 6a pkt 22 — zastępuje „na Fable” z 6a pkt 19; w skrypcie przypięty `model: 'claude-opus-5-5'`, pełny identyfikator przypina model — krok 0 mini-runu),
+  w **TRZECH osobnych runach** (projektanci → sesja główna czyta → sędziowie → sceptyk), synteza w sesji głównej (Opus 5.5). Wnioski dotyczą szablonu (workspace-template), nie jednego projektu (HANDOFF §1). **Panel NIE buduje:** wynik = koncepcja docelowego pipeline'u
+  + kolejność wdrożenia; etap 5 robi z tego plan w iteracjach, implementacja faza po fazie z metryką w telemetrii (6a pkt 19). Żaden projektant nie pisze kodu.
+- **Każdy projektant dostaje:** ten plik + `dane/dane-digest.md` (model kosztu) + `ETAP1-ROZSTRZYGNIECIE.md` (werdykty osi po kontrach) +
+  `ETAP2-ROZSTRZYGNIECIE.md` (mapa researchu) + hipotezy §5 tego pliku, każdy z innym priorytetem. NIE dostaje werdyktów workflow-A (HANDOFF §4, dane v1, zawyżone ~2×).
+  [2026-09-24, HANDOFF 6a pkt 25] Dostaje też `PROMPT-AUDIT.md` §4 (zasady pisania warstwy stałej ról + otwarte decyzje z prompt-auditu); streszczenie w §2a.
+  [2026-09-24, HANDOFF 6a pkt 26] Dostaje też `INSPIRACJE-POCOCK-PSTACK.md` §1 i §3 (B1, B2, B6, B7) — tło wymogów §2 pkt 14–16 i otwartej decyzji builder ↔ reviewer.
+- **Sędziowie (HANDOFF §1, 6a pkt 18 L17):** wymiary = koszt (o ile pipeline „dostarcza kod dobrze wykonany") i jakość = P1/P2 od CodeRabbit PO naszym
+  review (+ Sentry po wdrożeniu; /bugfix wypada z miary — L13). **Koszt i ryzyko wdrożenia NIE są kryterium** (propozycja czwartego wymiaru WYCOFANA; wdrożenie fazowe wg planu etapu 5).
+- **Nie jest wariantem:** szablon jako plugin (6a pkt 13 — zbadany, odłożony; co najwyżej wzmianka „opcja na przyszłość").
+- **Przed panelem, w etapie 4:** mini-run z 6a pkt 16 — **ZROBIONY 2026-09-23** (§11 tego pliku, `MINI-RUN-WYNIK.md`). Start panelu wyłącznie na znak operatora.
+
+## 1. Precedensy — co obowiązuje, gdy dokumenty się rozjeżdżają (ETAP3 §6, potwierdzone 6a pkt 18)
+
+1. **Kontekst agentów, Read vs Bash — WERSJA B (6a pkt 15, potwierdzona 2026-09-21):** CLAUDE.md projektu (po odchudzeniu, 20,6k zn) TRAFIA do builderów
+   i reviewerów; `omitClaudeMd: true` tylko u agentów mechanicznych nie patrzących na kod (stan:zapis, telemetria, dedup, precheck, kontekst:diff);
+   tryb bypass i czytanie Bashem (`cat`/`sed -n`) ZOSTAJĄ; reguły `paths:` = bonus, nie kanał dostawy. **NIEAKTUALNE:** POMIARY §5 pkt 1
+   („każdy agent `omitClaudeMd`", „buildery czytają Read") i HANDOFF §5 hipoteza 7 (Read zamiast Bash).
+2. **Oś test-coverage ZOSTAJE (operator 2026-09-21, L4):** obowiązuje POMIARY §2 („zero dodatkowych osi do skasowania") nad ETAP2 §2 (degradacja).
+   Kryterium falsyfikowalności z ETAP1; trzy warstwy mechaniczne (`@vitest/eslint-plugin` → `vitest --typecheck` z `expectTypeOf` → Stryker diff-scoped) to DODATKI z wynikiem
+   do buildera (ETAP2 §0 pkt 5), nie zamiennik. Scalenie z correctness = wyłącznie opcja wariantu, z warunkiem odwrotu i PO pomiarze warstw 2–3 na 31 uwagach klasy „test niefalsyfikowalny".
+3. **Brak lekkiej rundy correctness po fixie:** POMIARY §5 pkt 3 ją proponował, 6a pkt 15 ją wycofuje na rzecz poleceń-list correctness w `fix:kontrola`
+   (ten sam 1 agent, ten sam cykl). Obowiązuje 6a pkt 15.
+4. **Dźwignia kontekstu startowego ≈ 40–50% kosztu fazy w stanie po ścięciu CLAUDE.md (przegląd D4 2026-09-23; wcześniej „25–35%” z ETAP3 §1.1)** —
+   konfiguracja z pkt 1: allowlista `tools:` u wszystkich, `omitClaudeMd` u mechanicznych, learned-patterns poza eager; CLAUDE.md, coding-rules, `skills:` zostają.
+   Liczone agent po agencie z transkryptów (`skrypty/d4r_dzwignia_kontekstu.py` → `dane/d4r-dzwignia-kontekstu.txt`): Δ startu × wywołania API (1,25 pierwsze,
+   0,1 kolejne), koszt z ostatnim wpisem `usage`. Run 20.09 (po ścięciu, 85 agentów): 51,4% (fazy 48–53%); epoka 09-08..09-17: 37,1% (duże runy 32,8–40,6%),
+   z CLAUDE.md przyciętym kontrfaktycznie do stanu 20.09: 39,9%; wrażliwość na stawki zn/tok ±15%: 32–44% / 45–60%. Sama allowlista 27–38%; z coding-rules
+   w warstwie referencyjnej (6a pkt 18) +~2 pkt. Rozpiętość: długość pracy agenta (12 vs 22 wywołania) i zestaw MCP w sesji startowej. ETAP3 zaniżał: start 62k
+   z pustego agenta CLI zamiast 115–127k, polski tekst 3,4–3,7 zn/tok zamiast ~2, środowisko aplikacji desktop cięższe niż CLI. **Potwierdzone mini-runem (e) 2026-09-23** (Opus 5.5 / Haiku 4.5, aplikacja desktop, zmierzony start
+   każdej klasy podstawiony do 85 agentów runu 20.09): **≈48% pełną metodą** (49,4% wagami uproszczonymi), sama allowlista 35,2%; start każdej klasy 0,93–1,03 celu z §12.
+   **Kolejność priorytetów stoi**, ale **dźwignie nie sumują się:** roster + mechanika review (8–10%, ETAP1) liczone na dzisiejszym koszcie agenta — po allowliście
+   agent mechaniczny zachowuje ~1/3 kosztu, sceptyk ~1/2, reviewer 56–67%, więc rząd 3–7%; oszczędności z liczby agentów panel liczy na kosztach PO zmianie kontekstu.
+   [Przegląd D5: model kosztu etapu 0 zaniżał output (2% → 10,9%, całość 1 179 → 1 293 M jedn.), udziały ×0,91 — uwzględnione w liczbach wyżej.]
+5. **Model kosztu (etap 0) opisuje oferty-online BEZ napraw N1–N9 (L7):** operator — niska waga; do raportu jako uwaga, nie ryzyko. N1–N9 nie zmieniały liczby agentów na fazę.
+6. **STOP E2E ze środowiska / limitu zewnętrznego → [MANUAL], run idzie dalej (operator 2026-09-21, po D4):** obowiązuje 6a pkt 18 L11. **NIEAKTUALNY:** zapis ETAP1
+   „powtórka po STOP-ie E2E = sam tester" (i HANDOFF §5 hipoteza 4, i rek. 3 przeglądu runów) — traci przedmiot, bo taki STOP nie zatrzymuje runu, więc nie ma po nim żadnej powtórki review.
+
+## 2. Twarde wymogi KAŻDEGO z trzech projektów (6a pkt 15–18; brak któregoś = projekt niekompletny)
+
+1. **Allowlista `tools:` u wszystkich agentów pipeline'u** (−50k tokenów startu na agenta na koncie z pełnym MCP w CLI; w runach z aplikacji desktop 54–77k
+   u opusa i 37–53k u haiku, zależnie od serwerów MCP w sesji — przegląd D4; 498/514 agentów nie wołało MCP — 6a pkt 15).
+   Nośnik: **pliki agentów PER KLASA ROLI** jako domyślne (mechaniczny-haiku / orkiestracyjny-opus / reviewer / sceptyk / naprawiacz z Edit + skille),
+   per rola tylko jako wyjątek — istniejące 8 plików (4 reviewerów, tester E2E, 3 buildery). Docelowo kilkanaście plików zamiast ~40 (6a pkt 18 po D3).
+   Powód: `agent()` w Workflow nie ma opcji `tools:`/`omitClaudeMd`, a prompty 36 ról bez pliku są dynamiczne (JS), więc plik niesie wyłącznie ustawienia.
+   MCP: `disallowedTools: mcp__*` dla reszty; Figma tylko builder UI / fullstack / tester E2E gdy zadanie ma `figma_screens`; Supabase MCP tylko w sesji głównej (6a pkt 10).
+2. **Kontekst per klasa roli wg §1 pkt 1** (CLAUDE.md u builderów/reviewerów, `omitClaudeMd` mechaniczne, bypass zostaje) + `skills:` u builderów ZOSTAJE (7–12k tok/agent; dobór per IU niewart logiki). Mini-run (c): treść skilla, która dotarła, stosowana 2/2.
+3. **Budżet instrukcji w TRZECH WARSTWACH (6a pkt 18 po D2):** (1) warstwa STAŁA na rolę (mandat, kilkanaście poleceń-list, format wyniku, bloki workflowu)
+   **<150 instrukcji** jako TEST szablonu w `.claude/workflows/__tests__` (pada przy edycji promptu) + w sync-template/doctor; **w runie zero STOP-ów**, co najwyżej
+   liczba w telemetrii; **jednostka w teście (przegląd D2 2026-09-23, przyjęte): warstwa stała roli ma JEDEN oznaczony blok poleceń (stały nagłówek), każde polecenie
+   = jedna pozycja listy w bloku; test liczy pozycje bloku i pada, gdy poza blokiem jest zdanie nakazowe** (metoda `d2_budzet_instrukcji.py` — lista + zdania z markerem —
+   zależy od formy zapisu: 43% jednostek reviewera to pozycje list bez słowa nakazu, ta sama treść prozą byłaby niepoliczona, więc test nagradzałby przepisanie list
+   na prozę); uzasadnienie budżetu = trafność i koszt (~2/3 poleceń reviewera warunkowe → warstwa referencyjna), nie procent przestrzegania z IFScale (inna jednostka); **mini-run (d) 2026-09-23: 100 vs 400 poleceń = 25/25 vs 25/25 markerów, ramię 400 droższe o 72% —
+   liczba poleceń NIE jest u nas dźwignią jakości, budżet = porządek i koszt;** (2) warstwa REFERENCYJNA bez limitu, podzielona po warstwie kodu
+   i temacie (reguły zachowaniowe coding-rules, checklisty skilli buildera, wpisy learned-patterns), **doklejana przez orkiestrator po plikach jednostki**
+   (nie „agent sam sięgnie" — ETAP1 45/68 ucieczek miało regułę); (3) warstwa MECHANICZNA (ESLint/knip/advisors) znika z tekstu. Skille buildera dzielone
+   na stałą/referencyjną, nie skracane. Odrzucone: czyste wycinanie, czysty model skillowy.
+4. **learned-patterns (6a pkt 15, 17):** trzy poziomy — (0) jedna linia w CLAUDE.md, (1) `docs/learned-patterns.md` = indeks GENEROWANY przez dev-compound-refresh
+   z nagłówków solutions (klasa | reguła 2 zdania | wzorce plików | waga | link), (2) `docs/solutions/*.md` z frontmatterem klasa/reguła/paths/waga jako jedyne źródło prawdy. Plik wychodzi
+   z `.claude/rules/` (koniec ładowania eager). Orkiestrator wkleja builderowi I reviewerowi tylko wpisy pasujące do katalogów IU (1–2k zn); dev-plan czyta indeks.
+   **Mini-run (a) 2026-09-23: reguły wklejone do promptu delegacji stosowane 40/40** (15 w pełnym kontekście dziś, 25 przy samym prompcie; markery formalne = górna granica).
+   8 zabezpieczeń PRZYJĘTYCH: walidacja globów; zamknięty słownik klas w szablonie; koszyk „zawsze" z twardym limitem w JS; walidacja frontmatteru w JS
+   (compound odmawia zapisu bez pól); ten sam wycinek do reviewerów przez dossier; data + źródło + licznik ucieczek per wpis; jednorazowa konwersja 49k zn
+   skryptem z listą odrzutów; dopasowanie po katalogach, nie nazwach. Plus bramka „zielony main" w bootstrapie autopilota. Żaden skill nie dopisuje do CLAUDE.md (6a pkt 1).
+5. **Telemetria centralna, mechaniczna, ZERO agentów (6a pkt 18):** skrypt po zakończeniu runu czyta `journal.jsonl` + transkrypty (`usage`) i dopisuje
+   jeden rekord per agent/faza do globalnego JSONL + skrypt raportu miesięcznego. Pełny cennik (cache read/write/output), nie sam output. Rekord: §12 (D5).
+   Po przeglądzie D5 (2026-09-23): status i wynik runu skrypt czyta z pliku harnessu (`<sesja>/workflows/<run>.json`), więc zapis to skan bez kroku w skillach.
+6. **E2E → [MANUAL] zamiast STOP (6a pkt 18 L11, doprecyzowane 6a pkt 19):** warunek wstępny = środowisko E2E sprawdzone i działające PRZED startem autopilota
+   (doctor/precheck); test niewykonalny w trakcie runu przez środowisko / limit zewnętrzny = checkbox przechodzi na [MANUAL] z powodem, run idzie dalej,
+   a pozycja [MANUAL] **trafia do smoke operatora** (dev-docs-complete) — nie znika; ponowne stawianie środowiska w runie jest droższe niż test ręczny.
+   Każdy projekt mówi wprost, co robi ze STOP-ami E2E i z 3 rekomendacjami z `../2026-09-19-przeglad-runow-po-naprawie.md` (parametryzacja E2E z `.env.e2e`,
+   katalog zadania jako własne artefakty, kategoria przyczyny SKIP). Zapis ETAP1 „powtórka po STOP-ie E2E = sam tester" NIEAKTUALNY (§1 pkt 6).
+7. **Sceptyk asymetryczny (6a pkt 17):** verify dostaje sam zarzut (plik:linia + teza) BEZ uzasadnienia autora; odpowiada AGREE / DISAGREE_EVIDENCE
+   (musi wskazać linię kodu lub test) / DISAGREE_CONCERN (nie kasuje, obniża wagę); dla P1 naprawa zawiera test padający przed poprawką. Stosowany jednakowo do wszystkich osi.
+8. **Security WARUNKOWE po profilu stacku (6a pkt 6, 18):** profil z package.json + katalogów w dossier KAŻDEGO reviewera. Projekt z `supabase/` → bramka advisors
+   **przez Management API / Supabase MCP `get_advisors` na projekcie chmurowym** (Supabase WYŁĄCZNIE chmurowe, ZERO Dockera) przejmuje RLS/search_path/auth.users,
+   a security dostaje „nie sprawdzaj tego, robi to advisors"; projekt bez Supabase → security zachowuje polecenia-listy o RLS/politykach. Reguły nie są usuwane, tylko warunkowe.
+9. **Pętla fix BEZ dodatkowej rundy review (6a pkt 15):** sufit jednego cyklu w `fix:kontrola` zostaje; (1) `fix:kontrola` dostaje polecenia-listy correctness
+   zawężone do diffu fixa; (2) builder fixa naprawia tylko P1/P2, P3 → known-issues/bot, zakaz zmian poza zgłoszonym miejscem; (3) reszta → CodeRabbit w dev-pr.
+   Miara: P1/P2 od bota w plikach dotkniętych fixami po 5 zadaniach. NIE scalać `fix:kontrola` z `fix:poprawka` (ETAP1: 3 realne regresje złapane).
+10. **Zakaz powtórek sekwencyjnych review** (ETAP2 §0: sekwencyjna szkodzi, równoległa pomaga; 1 prawdziwy defekt za 4–5 fałszywych).
+11. **Polecenia-listy zamiast długich reguł** (ETAP1B §3, 6a pkt 18) — jako założenie z **warunkiem odwrotu** w każdym projekcie (§6) i w budżecie z pkt 3.
+12. **Scalenie dev-plan + dev-docs w jeden skill (6a pkt 19; dotąd hipoteza 6):** każdy projekt projektuje scalony skill z budżetem tokenów, na analizie tego,
+    co oba skille dziś robią i gdzie przepalają kontekst (HANDOFF §3 pkt 6: skille przed autopilotem = ~4–7% kosztu zadania w medianie, w małych zadaniach do ~1/5
+    — po przeglądzie D6; dawne „2–5%” liczyło tylko pierwszą odpowiedź skilla; dev-docs kopiuje 22–46% planu; 6a pkt 8 budżet pliku w IU; `dane/skille.csv`,
+    `dane/koszt_skilli.txt`, `dane/d6r-rewizja-audytu.txt`). **Gdzie jest koszt (przegląd D6):** dev-plan pełny = mediana 2,39 M na epizod (nie 0,81 M), z czego
+    subagenci researchu 18,6 M z 55,6 M w 19 epizodach — największa pozycja; dev-docs ~0,56 M; kopia planu w dev-docs to drobna część. Sześciu agentów researchowych
+    bez `tools:` (§7) podlega wymogowi §2 pkt 1. dev-prep zostaje osobno (interaktywny; pełny koszt mediana 1,40 M, rozmowa z operatorem po pierwszej odpowiedzi).
+13. **Każda zmiana w projekcie ma wskazaną metrykę z rekordu telemetrii (6a pkt 19):** metryka, pole rekordu, baseline z etapu 0, horyzont — wg mapy walidacji
+    D5b (§12). Zmiana bez metryki = niekompletna.
+14. **Skill weryfikacji aplikacji z mapą funkcji (6a pkt 26 (h); wystąpienie poteto 08:38–12:33, pstack `create-/maintain-verification-skill`):** per projekt,
+    generowany skillem szablonu z repo (nie z wywiadu), jednorazowo przechodzony na żywo przed oddaniem; sekcje Launch / Doctor / Drive / Evidence / Cleanup
+    + mapa funkcji (jeden wpis na funkcję: droga użytkownika, dowód działania, pliki kodu funkcji). Tester E2E czyta skill zamiast rozsianego przepisu
+    (`.env.e2e`, runner z re-seedem, port, doctor agent-browser); sprawdzenie środowiska przed startem (pkt 6) = sekcja Doctor; dev-docs-complete dopisuje
+    funkcje z zadania (scenariusze `[E2E]` z checklisty). Projekt mówi, kto i kiedy utrzymuje mapę (np. razem z pkt 16). **Przejście regresyjne po funkcjach
+    dotkniętych diffem ODŁOŻONE** — warunek powrotu: regresje w funkcjach nietkniętych planem (uwagi bota / Sentry). Koszt dziś: role E2E 4,7% kosztu runów,
+    tester 2,5% (`dane/insp-koszt-e2e.txt`).
+15. **Granice warstw jako reguły ESLint, bez nowej zależności (6a pkt 26 (i)):** zakaz importu klienta Supabase w komponentach i ekranach **bez wyjątku dla
+    auth** (wylogowanie przez wspólny hook; dozwolone: hooki, `lib/`, provider sesji) + `import-x/no-cycle`; wchodzą do zestawu bramek domknięcia fazy (§2a)
+    razem z posprzątaniem starych miejsc (§10). oferty-online: 5/88 plików `.tsx` z importem klienta, 1 wywołanie bazy + 5 auth (`dane/insp-granice.txt`).
+16. **Ogrodnik na zamknięciu zadania (6a pkt 26 (j); wystąpienie 20:43–26:43):** automatycznie w autopilocie po compound/compound-refresh, przed archiwizacją,
+    bez udziału operatora: agent mechaniczny uruchamia skrypt liczący w całym projekcie wyciszenia lint/TS, `any` i wymuszone rzutowania, komentarze
+    TODO/obejście/tymczasowo, puste `catch`, i porównuje z poprzednim pomiarem w telemetrii; agent oceny tylko przy wyraźnym przyroście albo co kilka zadań
+    (projekt podaje próg i N); wynik = sekcja „Ogród” w podsumowaniu zadania + propozycje (reguła lint teraz / sprzątanie jako zadanie / zostawić) do operatora;
+    zero zmian w kodzie bez decyzji. Warunek odwrotu: kilka zadań bez przyjętej propozycji → wyłączyć. Workflow nie uruchamia skryptu sam (D5) — stąd agent mechaniczny.
+
+## 2a. Twarde wejścia z etapów 1, 1b, 2 i pomiarów (rozstrzygnięte przed decyzjami operatora; obowiązują, o ile §1 nie mówi inaczej)
+
+- **ETAP1 §1, §2, §4:** roster 6 → 5 (performance ZASTĄP: size-limit w domknięciu + advisors performance + 5 linii w fokusie correctness: N+1, `for update` na hot path,
+  `Promise.all` po kolekcji, `.limit()` bez `count`, pętla z fetchem); security prompt 191 → ~90 linii + warunek `plikiKodu>0`; correctness własny plik agenta, tury
+  29,6 → ~20; spec-compliance: usunąć martwe odwołania w `spec-compliance-reviewer.md:49` i duplikat fokusu REVIEWERZY:368; code-quality: ESLint flat + knip
+  w domknięciu, prompt z zakazem zgłaszania czegokolwiek, co łapie lint; test-coverage: naprawić brak `zEffortem`/`agentType` w wywołaniu (`dev-docs-review-wf.js:904`);
+  e2e: harness → env-up, jedno źródło promptu, parametry z `.env.e2e`; stan fazy (policzony
+  w JS) doklejany do promptu agenta-następcy zamiast `stan:zapis` (80 powołań haiku/23 fazy); precheck → env-up; pre-skan → ESLint; zwiń → stan:zapis; NIE scalać
+  `fix:kontrola` z `fix:poprawka`; scribe review: niższy tier + krótszy prompt, nie dzielić; dedup ZOSTAW; domknięcie fazy pkt 1b (audyt error-handlingu) NIE jest
+  duplikatem hooka; progi rozmiaru → bot; **PR ≤ ~150 plików jako bramka w dev-docs-complete** (222 pliki = bot odmówił recenzji). Otwarte po ETAP1: batch sceptyków (§6),
+  spec tylko na fazach z kodem (27% wyjścia to `.md` poza miarą jakości). Zapis „powtórka po STOP-ie E2E = sam tester" — NIEAKTUALNY (§1 pkt 6).
+- **ETAP1B §2, §3, §5:** polecenia-listy per oś — konkretne polecenia w tabeli ETAP1B §3 (correctness 4, test-coverage 3 + kolumna falsyfikowalności, security 4,
+  spec 3, performance → 5. polecenie correctness o limicie czasu, e2e o seedach); **budżet pliku i rejestr stałych w plannerze** (IU wprowadzające stałą istniejącą
+  w repo wskazuje jedno źródło i konsumentów); **dossier klas ucieczek u buildera** (tabela 8–10 klas z jednym zdaniem „co robić zamiast", regenerowana z compoundów);
+  **bramka niezmienności migracji** (`git diff --name-only base..HEAD -- supabase/migrations/` ∩ pliki obecne w base ≠ ∅ → STOP „popraw nową migracją"; ta sama
+  w kontroli diffu naprawczego); 8 zmian `.coderabbit.yaml` (→ generator, §10); 4 zmiany dev-pr (§3 pkt 2); **seedy z właścicielem** (e2e dla kontraktu z migracją,
+  security dla strażników; `e2e/seeds/*.sql` bez path_instructions bota → dopisać jako granicę zaufania; seed vs migracja to klasa BEZ narzędzia — `migrations.sum`
+  pilnuje edycji wypchniętej migracji, nie zgodności seeda z kontraktem, ETAP3 §3 pkt 2); 28 uwag C (realna luka bez właściciela) i preferencje bota (Act/Assert,
+  docstring) zostają botowi; słownik klas (jedna nazwa na klasę) warunkiem porównywalności następnego pomiaru.
+- **ETAP2 §1, §2, §6:** zakaz powtórek sekwencyjnych (§2 pkt 10); sceptyk asymetryczny (§2 pkt 7); **pełny zestaw bramek domknięcia fazy:** `eslint.config.ts`
+  (ESLint 10 flat, `recommendedTypeChecked` error, `strictTypeChecked` warn, `max-lines` 360/60 ze skip*, `import-x/order`, `no-empty`, `no-floating-promises`,
+  `react-hooks` v6+ z regułami kompilatora) + knip + size-limit + `vitest --typecheck` + Stryker diff-scoped + `migrations.sum` (Supabase CLI nie ma checksumy migracji)
+  + advisors (na chmurze, §2 pkt 8); correctness wzmocniony mechanicznie (`no-floating-promises`, `react-hooks` set-state-in-effect/refs/purity) dla 2 największych
+  klas B; przy React Compilerze „brak useMemo/useCallback" NIE jest findingiem; trzy warstwy testów niefalsyfikowalnych jako DODATKI (§1 pkt 2) — StrykerJS bez `--since`
+  (zakresy `plik:od-do` liczone z `git diff`), wynik mutacji → builder jako lista mutantów do zabicia, **mutation score NIE jako cel liczbowy** (agent pisałby testy
+  pod metrykę); zasada alokacji: compute przesuwa się z osi produkujących szum (performance, code-quality → lint) do weryfikacji — sceptycy to 6% fazy, nawet 2× więcej
+  to mniej niż jedna oś; packager → JS
+  (założenie z warunkiem odwrotu, §6; dossier = pełne pliki dotknięte + kontrakty, BEZ zapewnień z planu fazy); dedup: rola „zagreguj i odsiej sporadyczne" ma sens
+  tylko przy n równoległych próbkach; pre-skan → skasować; `migrations.sum` PRZED env-up; przepisanie coding-rules.md z tabelą USUŃ/ZMIEŃ/DODAJ/PRZENIEŚ-DO-LINTERA
+  (`dane/etap2-research/research-coding-rules-2026.txt`); `claude plugin validate --strict` + `eval` jako bramka CI zmian w maszynerii (niezależnie od pluginu).
+  **Wariant do rozważenia przez panel:** n=3 równoległe próbki 2–3 osi skrajnych (security, correctness+testy) z różną kolejnością diffu + agregator (wzór Bugbot)
+  zamiast 6 osi — D1 (§4) podaje, ile zasięgu brakuje (połowa nowych findingów po fixie to przeoczenia), ale nie rozstrzyga wyboru: n próbek kupuje zasięg,
+  sceptyk go nie zwiększa; pomiar po panelu: run kontrolny „1 reviewer z budżetem 6 osi vs 6 osi" (POMIARY §5 pkt 4).
+- **POMIARY §1–§3 (fakty, które stoją niezależnie od §1 pkt 1):** reguły `paths:` wyzwala tylko Read/Edit (nie `cat`, nie Write nowego pliku, nie `ls`) → reguła
+  o nowej migracji musi być w prompcie delegacji; `omitClaudeMd` działa też dla `agent()` w Workflow; sam `disallowedTools: mcp__*` daje 39,3k (nie 11,6k) — dźwignia
+  jest w `tools:`; bramki z cache ESLint + knip + size-limit ≈ 4 s + typecheck 10 s na 585 plikach; pierwsze wdrożenie ESLint = tura wyciszania 188 zastanych błędów;
+  **Stryker ~2 min na 3 pliki → 5–15 min na fazę, NIE do każdego domknięcia** (kandydat: przed dev-pr lub tylko pliki testowe dotknięte w fazie); Stryker wymaga
+  zielonego zestawu testów (bramka „zielony main", §2 pkt 4); pomiar 2: ESLint trafia 1/97 uwag B po linii → bramki gaszą koszyk A i zapobiegają, nie kasują osi.
+- **MINI-RUN 2026-09-23 (`MINI-RUN-WYNIK.md`; wyniki a–f w §11):** (b) `paths:` dostarczył regułę 0/3 — buildery czytały migracje Bashem (3/3); co dotarło do
+  kontekstu (wklejone, przeczytane, ze skilla), było stosowane. **Trzy ustalenia poboczne dla projektów:** **N1** — harness przekazuje każdemu agentowi wiadomość
+  operatora, która uruchomiła run, z adnotacją „prośba wygrywa z zadaniem skryptu”; agenci haiku ją WYKONUJĄ (E1: 3/4 haiku użyło narzędzi mimo „nie używaj
+  narzędzi”, jeden zrobił `git mv` w repo; opus 0/12; krok 0: haiku pisał pliki planu); jedno zdanie w wiadomości („do agentów: ta wiadomość nie jest dla was”)
+  → 0/8; runy uruchomione z odpowiedzi na task-notification nie dostają żadnej wiadomości. W pipelinie tą drogą idzie polecenie startu autopilota → każdy projekt
+  wpisuje zabezpieczenie: stałe zdanie do agentów w poleceniu startu (dev-autopilot-wf) + allowlista klasy mechanicznej bez Bash/Write tam, gdzie rola ich nie potrzebuje.
+  **N2** — instrukcje (CLAUDE.md, rules) i skille są buforowane w sesji: plik przeniesiony z `.claude/rules/` dalej ładowany eager; zmieniony SKILL.md → następny agent
+  bez skilla, kolejne z wersją o jedną zmianę wstecz; `change_directory` zostawia instrukcje starego katalogu. Po zmianach w `.claude/` nowa sesja przed autopilotem (§10);
+  wiedza wklejana przez orkiestrator jest czytana w runie, więc świeża (argument za §2 pkt 4). **N3** — builder czyta `git status` z `session_context` i idzie za nim.
+- **PROMPT-AUDIT 2026-09-24 (`PROMPT-AUDIT.md`, zaakceptowany w całości — HANDOFF 6a pkt 25).** Maszyneria oceniona względem modelu, na którym jedzie
+  każda rola (Opus 5.5; 9 ról Haiku 4.5); ~94% historii agentów opusowych to Opus 5, więc prompty i efort strojono pod poprzedni model.
+  **Zasady pisania warstwy stałej każdej klasy roli (wymóg projektu, uzupełnienie §2 pkt 3):** (1) pliki klas pisać od zera, nie przerabiać plików
+  z compound-engineering — mandat w 1–2 zdaniach, polecenia-listy z powodem przy każdym, bez dialogów-przykładów i bez tożsamości „expert/elite”,
+  bez wzmacniaczy („be paranoid”, „last line of defense”); (2) jeden format wyjścia = schemat workflowu, żadnego drugiego formatu raportu w pliku;
+  (3) czas teraźniejszy, zero dat, numerów poprawek i nazw incydentów w tekście dla modelu (historia w komentarzach JS i `docs/solutions/`) — test
+  budżetu warstwy stałej może odrzucać `20\d\d-\d\d-\d\d`, „jak dotąd”, „już nie”; (4) nacisk (wersaliki, „ZAKAZ”) tylko przy udokumentowanej awarii,
+  z powodem obok; (5) role mechaniczne dostają dokładne polecenie i dane wejściowe od orkiestratora, nie zadanie ustalenia zakresu (`fix:pre-skan`:
+  mediana 20 wywołań narzędzi na jedno polecenie gita); (6) nazwy narzędzi MCP w promptach i w allowliście `tools:` (§2 pkt 1) wyliczane z instalacji,
+  w prompcie po nazwie funkcji; (7) efort jest parametrem klasy roli obok modelu i `tools:`. Zasady (1)–(4) dotyczą też plików klas reviewerów, które
+  zastąpią dzisiejsze `security-sentinel` / `architecture-strategist` / `performance-oracle` (sprzeczności PA-03, PA-04 do usunięcia niezależnie — §10).
+  **Otwarte decyzje do kroku 0 panelu:** efort per klasa roli na Opus 5.5 (PA-22: domyślny `medium`, poziomy nie mapują się 1:1 z Opus 5, tiery
+  przypięte testem `sceptycy-p2.test.mjs:157`); liczba warstw weryfikacji — builder, domknięcie, fix, walidacja końcowa, hook tsc (PA-29; migracja
+  wskazuje polecenia weryfikacji jako kandydata do re-testu); obowiązkowy research w dev-plan przy głębokości „Lekka” (PA-30, §2 pkt 12); opisy
+  workflowów-dzieci w liście skilli każdego startu agenta (PA-31). Do projektu skilli builderów: `security` wstrzykiwany builderom to protokół audytu
+  z raportem — do warstwy referencyjnej jako reguły dla implementatora (PA-24); przy §2 pkt 4 usunąć krok „1.7 przeczytaj learned-patterns” z plików
+  builderów (PA-27, trzy kanały dziś).
+- **INSPIRACJE 2026-09-24 (`INSPIRACJE-POCOCK-PSTACK.md`, HANDOFF 6a pkt 26).** **Zasady pisania warstwy stałej 8–11** (Matt `writing-for-agents`):
+  (8) cel pozytywny zamiast zakazu — zakaz tylko jako twarda bariera i w parze z celem (tryb rozkazujący zostaje); (9) każdy krok kończy się kryterium
+  ukończenia, jasnym i wymagającym; (10) środowisko jest źródłem prawdy — bez kopii `package.json`, konfiguracji, `--help` w prompcie; (11) no-op rozstrzyga
+  uruchomienie, nie dyskusja. **Polecenie-lista test-coverage i jedna pozycja warstwy stałej builderów:** „czy test przeszedłby, gdyby każda importowana
+  funkcja zwracała `undefined`?” + 5 kształtów (słaba/brak asercji; tylko mock albo nieobecność; samoodniesienie; przypięta stała; fixture sprawdza fixture)
+  → przepisz asercję na konkretną wartość; usunięcie tylko zielonego testu, gdy nie da się przepisać, z wpisem w raporcie fazy (wyjątek w coding-rules §2).
+  **Bramki:** każda odbierana testem „przejście → podłożone naruszenie → porażka → przejście”; nowa reguła lint wchodzi razem z posprzątaniem starych miejsc.
+  **Otwarta decyzja do kroku 0:** rozkład reguł zachowaniowych builder ↔ reviewer (za: builder ~480–490 instrukcji, coding-rules 117–130, mini-run (d);
+  przeciw: ETAP1 45/68 ucieczek miało regułę, D1 — każdy finding to tura fixa); metryka: P1/P2 na fazę, tury fixa, ctx_start buildera. **Odrzucone przez
+  operatora** (nie wracać): skala pewności dowodu 1–5, lżejszy plan + „szwy testowe”, równoległe IU, zakaz komentarzy, drabina egzekwowania jako zasada przekrojowa.
+
+## 3. Pozostałe decyzje operatora 6a pkt 1–14 obowiązujące dla projektów (jedna linia każda)
+
+- pkt 1: aktualizacja CLAUDE.md = krok „uzgodnij z rzeczywistością" na końcu brancha z bramką rozmiaru w JS; decyzje fazowe → `docs/decisions/` + 1 linia indeksu; do usunięcia dopisywanie w dev-docs-complete:115-116 i complete-wf:160.
+- pkt 11: uzgodnienie CLAUDE.md dopiero PO potwierdzonym merge'u (krok w dev-pr) + bootstrap autopilota na main sprawdza wpis w `docs/decisions/`.
+- pkt 2: dev-pr PRZEBUDUJ wąsko — 4 zmiany z ETAP1B §4 (zero nowych agentów): (1) etap `zbierz` obowiązkowy w KAŻDEJ turze, `napraw` odrzuca wątki bez niego; (2) regex guarda uzasadnień bez alternatywy z backtickiem, wymagana nazwa dokumentu + 20 zn; (3) pole `rekomendacja` liczone w JS (MERGUJ / NIE MERGUJ / KOLEJNA TURA / DECYZJA OPERATORA) jako pierwszy wiersz raportu; (4) raport = tabela per tura złączona po id z `watki[]` + `propozycjeDoReviewerow` commitowane w compoundzie. Osobno: sufit 3 tur, tryb interaktywny zostaje. dev-pr = 0,74% kosztu pipeline'u — NIE jest celem oszczędności, cel = jakość decyzji operatora. Odrzucone w ETAP1B: klasa `bot-podtrzymuje`, etap `raport` z plikiem na dysku (karmi pętlę recenzji), domyślne 2 tury. 8 zmian `.coderabbit.yaml` wdrożyć PRZED pomiarem dev-pr.
+- pkt 4, 17: learned-patterns — format klasa → reguła (2 zdania) → Source; zasada: limit rozmiaru dotyczy warstwy ZAWSZE ładowanej (indeksu), nie wiedzy — wiedza schodzi do warstw ładowanych warunkowo (odpowiedź na pytanie operatora o projekt rozwijany rok); zamknięty słownik klas (L12: dziś trzy słowniki traktowane jak jeden — do jednej listy z odwzorowaniem ETAP1↔ETAP1B; praca wdrożeniowa, nie panelowa).
+- pkt 5: coding-rules.md — poprawki (sprzeczność §3/§11, zbyt absolutne NIGDY/ZAWSZE, część do ESLint; ETAP2: §13 i §9 sprzeczne z docs); właściciel szablon, zmiany tylko z dowodem; po D2 to drugi największy blok instrukcji (117–130; większy tylko blok skilli buildera 178) → warstwa referencyjna.
+- pkt 6: profil stacku w dossier + komendy-listy per technologia u istniejących reviewerów; NIE nowy agent.
+- pkt 8: budżet pliku w scalonym dev-plan+dev-docs — IU podaje długość pliku, przyrost, wymiary (powody zmiany, eksporty, importy, test-lustro, 5 sekund); pęka → krok „wydziel moduł" PRZED dodaniem; ten sam próg z tolerancją 20% w ESLint i `.coderabbit.yaml` (progi rozmiaru → bot, ETAP1).
+- pkt 3, 17: higiena konta (MCP/pluginy per projekt, audyt pluginów) = OSOBNY etap po raportach, poza panelem.
+- pkt 12: `doctor` — mechaniczny skrypt bash, lista narzędzi WYLICZANA z projektu, wołany w sync-template / dev-prep / bootstrapie autopilota (STOP przed pierwszą fazą) + sekcja „Wymagania" w README.
+- pkt 14: styl komunikacji z operatorem — problem → przyczyna → rozwiązanie → korzyść.
+
+## 4. Wyniki domknięć D1–D3 (2026-09-21)
+
+- **D1 (L3) — wersja po przeglądzie 2026-09-23: `skrypty/d1r_rewizja_atrybucji.py` → `dane/d1r-rewizja-atrybucji.{txt,json}`, korekta w POMIARY §4
+  (pierwotnie `dane/pomiar5-atrybucja-po-fixie.*`, 2 pary, 33 findingi, „60% recall”).** Trzy powtórki po fixie (9b f4, samodzielna f3 run 1→2 i 2→3),
+  44 findingi kodowe, klasa semantyczna (blame na linii + przyczyna z diffu): **urodzone w fixie 15 kodowych (+3 rozjazdy CLAUDE.md), łańcuch 4 (urodzone
+  we wcześniejszym fixie, przeoczone przez PEŁNĄ następną rundę, w tym 2 P2), przeoczone w kodzie oglądanym przez rundę wcześniejszą 22 = 50%
+  (przedział 36–64%, wrażliwość 50–57%)**; P1/P2 kodowe: przeoczone 7, fix + łańcuch 8; jedyny P1 urodził się w fixie; kontrola diffu nie złapała żadnego
+  urodzonego w fixie. Wniosek: składniki porównywalne — ani „review kodu naprawczego” (POMIARY §4), ani „większość to recall” nie wynika z danych.
+  **Dla panelu:** (1) wybór „n=3 równoległe próbki 2–3 osi skrajnych vs jedna runda z lepszym sceptykiem” (ETAP2 §6, POMIARY §5 pkt 3) NIE wynika z tego
+  podziału — sceptyk odsiewa fałszywe, nie znajduje przeoczonych; D1 mówi, ile zasięgu brakuje (22/44), a wybór to decyzja o kupowaniu zasięgu za compute;
+  (2) łańcuch pokazuje, że kodu naprawczego nie łapie niezawodnie także kolejna pełna runda → źródłem steruje się po stronie fixa (§2 pkt 9).
+- **D2 (L2) — `skrypty/d2_budzet_instrukcji.py`, `dane/pomiar6-budzet-instrukcji.{json,txt}`, ETAP3 §7; wersja po przeglądzie 2026-09-23:
+  `skrypty/d2r_rewizja_budzetu.py` → `dane/d2r-rewizja-budzetu.txt`.** Reviewer security dziś ~365 jednostek (lista + zdanie z markerem nakazu; górna bez
+  podwójnego liczenia ~500 — learned-patterns ma 5,7 nakazu/regułę i wchodzi DWA razy: eager z `.claude/rules/` ORAZ w całości w dossier, co jest kosztem 13k tok
+  × 6 reviewerów na fazę, ale nie dodatkowymi poleceniami), builder danych ~497 na medianie iu.prompt (górna ~670; trzy skille 178). Po 6a pkt 15/17 nadal reviewer
+  ~310–320, builder ~480–490. Precyzja licznika na próbce 30: reviewer 29/30 to polecenia, builder 23/30; **reviewer: ~1/3 zawsze obowiązujące (~110), ~2/3 warunkowe**.
+  **IFScale mierzy inną jednostkę** („użyj dokładnie słowa X”) — kierunek (więcej poleceń → ciche pominięcia) stoi, procenty 84–99% → ~68% NIE przenoszą się;
+  nasz punkt na krzywej da mini-run (d) (§11) [**mini-run (d) 2026-09-23: 100 vs 400 poleceń = 25/25 vs 25/25 — brak dźwigni jakości, +72% kosztu**]. **Dla panelu:** budżet projektować jako CAŁOŚĆ na rolę (cel <150), uzasadniony TRAFNOŚCIĄ i KOSZTEM (warunkowe
+  → warstwa referencyjna, stała ~110 jest osiągalna bez wycinania wiedzy) → wymóg §2 pkt 3; oczekiwania wobec poleceń-list niższe (§6, §8).
+- **D3 (L15, L1b) — `dane/d3-mapa-rol-agentow.txt`.** 45 slotów ról w 6 workflowach = 36 bez pliku agenta + 9 z plikiem (8 plików); `dev-autopilot-wf.js` 19 wywołań,
+  zero `agentType`; 0/16 plików ma `tools:`. Prompt osi review żyje w DWÓCH miejscach dla 4 osi (plik + fokus w workflowie), tylko w workflowie dla correctness
+  i test-coverage, a code-quality = angielski plik „architecture-strategist" + fokus z trzema osiami — „odchudź prompt o połowę" musi wskazać oba miejsca. Telemetria:
+  3 klasy ról po kontekście na turę (mechaniczne haiku 86–102k, orkiestracyjne opus 119–168k, reviewerzy 193–224k, buildery 238k); sceptycy 135 wywołań/23 fazy
+  = najliczniejsza rola bez pliku (naturalne miejsce na pierwszy wspólny plik klasy). **Dla panelu:** wymóg §2 pkt 1 (pliki per klasa).
+  **Korekta po przeglądzie 2026-09-23 (`skrypty/d3r_kontekst_per_klasa.py` → `dane/d3r-kontekst-per-klasa.txt`):** (1) kontekst per klasa z telemetrii NIE jest punktem
+  odniesienia — pochodzi z epoki, w której CLAUDE.md oferty-online rósł 13,8k → 87k zn (08-31 → 09-17), learned-patterns 7,8k → 45k, a kontekst PIERWSZEJ tury rósł
+  razem z nimi (mechaniczne 55k → 101k, reviewerzy 76k → 145k, buildery 89k → 160k tok); po ścięciu CLAUDE.md do 21k (09-21) nie było żadnego pełnego runu [nieaktualne — korekta z przeglądu D5 niżej]; punkt
+  odniesienia = mini-run (e) na obecnym stanie repo, przed `tools:`; porównania `ctx_start` tylko przy podobnym rozmiarze stałych plików (`faza.wiedza.*`);
+  (2) CLAUDE.md nie tłumaczy różnicy między klasami (ładuje się obu): średni kontekst na turę mierzy PRACĘ (reviewer 25 tur, mechaniczny 5); na starcie różnica ~40k,
+  głównie MODEL (haiku ~93k, opus ~127k przy tej samej konfiguracji bez pliku) → cele ctx_start sprawdzać per model [przegląd D4: to tokenizer — ten sam tekst
+  to u haiku 0,742 tokena opusa, p10–p90 0,740–0,745 na 133 agentach]; (3) klasy uzasadnia zestaw USTAWIEŃ roli (model,
+  CLAUDE.md, Edit/skille, MCP), nie poziom kontekstu; (4) freshness-audit-wf (4 role) poza mapą do decyzji operatora po D6. Wzrost stałego kontekstu o 46–75k tok
+  w 3 tygodnie bez zmiany pipeline'u = najmocniejszy dowód na 6a pkt 1 i 17 (nic nie dopisuje do CLAUDE.md, learned-patterns poza eager).
+  **Korekta z przeglądu D5 (2026-09-23, `skrypty/d5r_wykonalnosc_rekordu.py` §11):** „po ścięciu CLAUDE.md zero runów” jest fałszywe — run 20.09 (cookie-consent,
+  85 agentów, OK) pracował z CLAUDE.md 17,8k zn na gałęzi zadania (PR #21 zmergowany 21.09; D3 datowało ścięcie po gicie main, a u 188/689 agentów CLAUDE.md
+  widziany ≠ main). Kontekst pierwszej tury p50 w tym runie (vs 13–17.09): mechaniczni haiku 89k (101k), orkiestracyjni opus 121k (139k), reviewerzy 125k (145k),
+  sceptycy 123k (144k), buildery 135k (160k); n = 6–29 na klasę. To pierwszy punkt odniesienia; mini-run (e) = potwierdzenie na obecnym stanie per model.
+  [**Mini-run (e) 2026-09-23, Opus 5.5 / Haiku 4.5, aplikacja desktop:** start „dziś” w kopii oferty-online ~5% niżej niż 20.09 (mechaniczny haiku 85k, orkiestracyjny
+  opus 115k, reviewerzy 117–119k, builder 128k); po zmianach z §1 pkt 1 start każdej klasy 0,93–1,03 celu z §12.]
+
+## 5. Hipotezy z HANDOFF §5 — stan po decyzjach (projektant dostaje je w TEJ wersji)
+
+| # | hipoteza (HANDOFF §5) | stan | źródło |
+|---|---|---|---|
+| 1 | odchudzić kontekst startowy agenta | **OBOWIĄZUJE w wersji §1 pkt 1 / §2 pkt 1–4**; dźwignia ≈ 40–50% (przegląd D4; dawniej 25–35%); MCP/skille przez `tools:`; learned-patterns → wycinek od orkiestratora; dev-compound nie pisze do CLAUDE.md | 6a pkt 15, 17; ETAP3 §1.1 |
+| 2 | mniej agentów na fazę (35 → ~15) | **OTWARTA dla panelu** z ustaleniami: stan w prompcie następcy, precheck → env-up, pre-skan → ESLint, zwiń → stan:zapis, NIE scalać kontroli z poprawką, scribe review niższy tier (ETAP1); telemetria = skrypt, NIE agent (nadpisuje część hipotezy o scribe); dedup ZOSTAW z rolą zależną od wyboru n próbek (ETAP2); packager → JS jako założenie z warunkiem odwrotu (ETAP2, §6) | ETAP1 §1, ETAP2 §2, 6a pkt 18 |
+| 3 | roster 6 → 4–5 | **ROZSTRZYGNIĘTE w ETAP1 + L4:** performance ZASTĄP (z warunkiem odwrotu); security ZOSTAW-ODCHUDŹ (prompt 191 → ~90 linii, `plikiKodu>0`, warunkowe po stacku); correctness ZOSTAW-ODCHUDŹ + własny plik; spec-compliance ZOSTAW (otwarte: tylko fazy z kodem); code-quality ZOSTAW-ODCHUDŹ + lint (styl/progi zakazane w prompcie); test-coverage ZOSTAJE (falsyfikowalność); e2e ZOSTAW-ODCHUDŹ (harness → env-up, jedno źródło promptu, parametry z `.env.e2e`). Roster 6 → 5. | ETAP1 §1, §7; 6a pkt 18 |
+| 4 | powtórka po STOP-ie E2E = tylko tester | **NIEAKTUALNA (§1 pkt 6):** STOP środowiskowy/limitowy → [MANUAL], run idzie dalej, powtórka nie istnieje | 6a pkt 18 L11 |
+| 5 | P3 nie naprawiać automatycznie | **PRZYJĘTA:** builder fixa tylko P1/P2, P3 → known-issues/bot | 6a pkt 15 |
+| 6 | dev-plan + dev-docs = jeden skill | **WYMÓG (§2 pkt 12, 6a pkt 19)**, z uzupełnieniem: budżet pliku i rejestr stałych w plannerze (6a pkt 8, ETAP1B); dev-prep osobno; oszczędność = czas operatora + kontekst scalonego skilla | HANDOFF §3 pkt 6, 6a pkt 19 |
+| 7 | buildery Read zamiast Bash | **NIEAKTUALNA** (§1 pkt 1) | 6a pkt 15, 18 |
+| 8 | telemetria pełna | **PRZYJĘTA i rozszerzona:** mechaniczna, zero agentów, globalny JSONL + raport miesięczny (§2 pkt 5, §12) | 6a pkt 18 |
+| 9 | parametryzacja E2E w szablonie | **na listę zmian szablonu** (§10) + wejście panelu przez §2 pkt 6 | ETAP3 §7 |
+
+## 6. Założenia z warunkiem odwrotu (każdy projekt wpisuje warunek i miarę przy każdym z nich)
+
+| założenie | na czym stoi | warunek odwrotu / pomiar | źródło |
+|---|---|---|---|
+| polecenia-listy domkną ~60–70% uwag B | oceny agentów etapu 1b, zero runów; IFScale jednocześnie uzasadnia i grozi (po przeglądzie D2: inna jednostka, tylko kierunek); **oczekiwanie obniżone** — D1 (połowa nowych findingów to przeoczenia w oglądanym kodzie) i 1b (164/200 B „w zakresie promptu”) wskazują raczej na granicę uwagi/osądu niż na nadmiar reguł | skuteczność mierzalna dopiero PO wdrożeniu, porównanie w tym samym typie kodu względem B0 (baseline po zmianie `.coderabbit.yaml`); wzór warunku (D5b v2 — jednostka i próg poprawione): B P1/P2 bota osi na 100 plików w oknie 5 PR ≥ max(3, 2 × oczekiwana) przywraca regułę/oś, klasa = diagnoza (dawne „>1 P1/P2 klasy X na 5 faz" = 1–2 PR i fałszywy alarm); budżet <150 z D2 | ETAP1B §3, ETAP3 §1.2 |
+| performance ZASTĄP (size-limit + advisors + 5-liniowa checklista w correctness) | advisors NIEZMIERZONE (do zmierzenia przy wdrożeniu bramki, na chmurze); size-limit dziś w szablonie nieobecny (0 wystąpień w `.claude/`), zmierzony tylko czas (0,8 s) | ≥3 B P1/P2 osi performance od bota w oknie 5 PR → przywrócić oś warunkowo na tierze low (D5b v2; baseline 5 w 17 PR, wrzesień 1 na 683 pliki; dawne „>1 na 5 faz" alarmowałoby przypadkiem w ~20% okien) | ETAP1 §1, ETAP3 L10, D5b |
+| security odchudzone + warunkowe po stacku | jw. advisors | B P1/P2 osi security od bota na 100 plików, osobno per profil stacku (D5b v2: 33 w 17 PR = 1,72/100, wrzesień 0,88/100; próg odwrotu w oknie 5 PR ≥ max(3, 2 × oczekiwana), dziś 10; „7+6" z ETAP1 = inny zbiór, nieporównywalny) | ETAP1 §1, 6a pkt 18, D5b |
+| packager → JS (agent znika) | ETAP1: bilans ujemny (18,7 M kosztu vs 9,5 M routingu), jedyny pomiar: reviewerzy po dossier czytają 2× więcej Bashem (10,5 → 23 tur); ETAP2: z literatury | pomiar tur Bash/Read reviewerów z dossier i bez na tej samej maszynerii — po wdrożeniu; kierunek tani i odwracalny | ETAP1 §1, ETAP3 L18 |
+| sceptyk asymetryczny ~4× skuteczniejszy | 2 prace zewnętrzne (63–83% kill); u nas obalenia 12% / 19,2% / 10,9%, `obalone_n` per oś = artefakt | kill rate na archiwalnych findingach o znanych werdyktach — po wdrożeniu; ryzyko: kasowanie prawdziwych P1/P2 | ETAP3 L6 |
+| test-coverage scalone z correctness (tylko jako opcja wariantu) | jedyna zmierzona warstwa mechaniczna trafia 0/31 | dopiero po pomiarze warstw 2–3 (Stryker na atrapach i Zod) na plikach z 31 uwag | §1 pkt 2 |
+| batch sceptyków (4 findingi per sceptyk) | hipoteza ETAP1: 105 → ~30 agentów/23 fazy ≈ −2% (sama opłata za powołanie; po allowliście start sceptyka 123k → ~26k, więc ≈ −0,4% — przegląd D4, §1 pkt 4) | odsetek obalonych i degradacji P2→P3 przy batchowaniu vs dziś (10,9% / 23%) | ETAP1 §1 |
+| hook `error-handling-reminder.sh` → wycofać | 6a pkt 18 L14 | dopiero gdy bramka ESLint (`no-console` + reguła Sentry) wejdzie do domknięcia fazy | 6a pkt 18 |
+
+## 7. Elementy nietknięte — każdy projekt OBEJMUJE albo JAWNIE ZOSTAWIA (ETAP3 §5 + rozstrzygnięcia 6a pkt 18)
+
+| element | stan | co projekt ma z tym zrobić |
+|---|---|---|
+| `kieran-typescript-reviewer.md`, `code-simplicity-reviewer.md` | ROZSTRZYGNIĘTE: ścieżka odwrotu konsolidacji z 2026-09-03, po panelu bez sensu → USUNĄĆ; treść (kieran §4b async/błędy, §5 usunięcia i regresje, §7 sygnały ekstrakcji; simplicity: YAGNI) = materiał do poleceń-list correctness i code-quality | wykorzystać treść, nie wplatać w inny proces |
+| hooki Stop | ROZSTRZYGNIĘTE: `stop-build-check-enhanced.sh` ZOSTAJE (poza autopilotem, zero tokenów); `error-handling-reminder.sh` → wycofać po bramce ESLint | nic do projektowania |
+| skill `/bugfix` | ROZSTRZYGNIĘTE: praktycznie nieużywany → kandydat do usunięcia; wypada z miary jakości | lista zmian szablonu |
+| `coderabbit-setup/templates/coderabbit-base.yaml:54-55` (progi 300/50) | ROZSTRZYGNIĘTE: poprawić generator + opisać w skillu, jak konfigurować bota bez szumu (8 zmian z ETAP1B) | lista zmian szablonu |
+| 6 agentów researchowych (best-practices, framework-docs, learnings, repo-research, spec-flow, web-research) | wołane ze skilli dev-plan/dev-prep/dev-ideate/dev-brainstorm (1–3 odwołania), 0/16 z `tools:` | objąć allowlistą (klasa) albo zostawić z uzasadnieniem |
+| skille dev-ideate (403 l), dev-brainstorm (344), dev-docs-update (107) | 0 wystąpień w rozstrzygnięciach; dev-docs-update nakłada się na bootstrap stanu autopilota | ROZSTRZYGNIĘTE 2026-09-23: dev-ideate i dev-docs-update usunąć; dev-brainstorm zostaje (koszyk C, celowo poza pipeline'em) |
+| **wszystkie skille szablonu — użycie (D6, 2026-09-22; `skrypty/d6_audyt_skilli.py` → `dane/d6-audyt-skilli.{txt,json}`)** | 28 skilli + 7 workflowów; trzy źródła: koszt ze `skille.csv` (5 projektów, 08-05..09-18), skan 5228 transkryptów wszystkich projektów (okno 2026-08-03..09-22 — retencja ~7 tyg., „0" ≠ „nigdy"), artefakty w 17 repo z szablonem (ślad z całego życia). **A. rdzeń, używany w każdym zadaniu (13):** dev-prep/dev-plan/dev-docs (52 epizody, 39,6 M jedn., 5 projektów), dev-autopilot-wf (54 uruchomienia Workflow, 5 projektów) + 4 workflowy-dzieci (wołane z autopilota przez `workflow()`, widoczne tylko w journalach nowego formatu: execute 15, review 18, compound 5, complete 5), dev-pr (11) + dev-pr-wf (75 uruchomień, 2 projekty), dev-compound (6 + 206 solutions w 12 repo), dev-docs-complete i dev-compound-refresh (SKILL.md czytany przez agenta w runie; 101 completed w 10 repo). **B. wstrzykiwane `skills:` (7):** supabase/security/sentry w 148 agentach (data 125 + fullstack 23), tailwind/ux/figma-design-to-code w 53, agent-browser w 59 testerach; zero wywołań ręcznych poza 2 (security 1, supabase 1); czy treść jest STOSOWANA — mini-run (c). **C. rzadko, celowo, poza pipeline'em (5):** coolify-manager 8/3 proj., sync-template 8/4, zroastuj-mnie 7/4, dev-brainstorm 7/4 + 8 brainstormów w 6 repo, coderabbit-setup 1 epizod, ale 5 repo z wygenerowanym plikiem. **D. kandydaci do usunięcia (5, 748 linii SKILL.md, 15 plików; zero użyć w oknie, zero artefaktów, nic w maszynerii ich nie woła):** code-review (ostatnia zmiana 03-20), code-quality (jedyne „odwołanie" = nazwa osi w review-wf, kolizja nazw), gemini (03-20, nie ma go nawet na liście skilli sesji), dev-docs-update (0 odwołań), bugfix (1 użycie w 7 tyg. na ~30 projektów — L13 potwierdzone). **E. do decyzji (5):** dev-ideate (1 użycie przerwane + 1 artefakt, 403 l), freshness-audit + wf (2 uruchomienia i 3 raporty, wszystkie 2026-08-23, tylko repo szablonu — „nieużyty" potwierdzone), dev-docs-execute/dev-docs-review jako SKILLE = tryb ręczny: 0 wywołań, wszystko idzie autopilotem, ale ich SKILL.md czyta agent w runie. Usunięcie D nie zmienia kosztu runów (skille nie ładują się do agentów) — tylko listę skilli operatora i utrzymanie. Skille konta (figma:*, frontend-design, artifact-design…) poza audytem → higiena konta. **Korekta po przeglądzie D6 (2026-09-23, przyjęta; `skrypty/d6r_rewizja_audytu.py` → `dane/d6r-rewizja-audytu.txt`):** (1) okno transkryptów = ~30 dni w aktywnym projekcie (oferty-online od 22.08), 7 tyg. tylko w rzadko otwieranych; `history.jsonl` (polecenia z terminala od 2025-10-05) pokazuje, że D były używane, potem PORZUCONE — code-review 15 (styczeń), gemini 17 (XII–III, raporty w `dev/gemini` w 2 starych repo), dev-docs-update 6 (XII–II), code-quality 1 (07-13), bugfix 1 (04-19) + 1 (09-10); lista D bez zmian, uzasadnienie „porzucone”; (2) tryb ręczny E: dev-docs-execute 402 + dev-docs-review 191 wywołań do 07.06, od wejścia autopilota zero — zastąpiony 3,5 mies. temu, nie „nieużywany”; (3) z pliku harnessu (wszystkie runy): workflowy-dzieci execute 81 (31 runów), review 84 (34), compound 20, complete 20 (nie 15/18/5/5); compound-refresh i complete tylko w runach dochodzących do końca = 20/55; dev-pr-wf 75 runów = 8 PR (etapy); autopilot 55 runów; (4) koszt A to „pierwsza odpowiedź skilla” (dolna granica) — pełny koszt prep+plan+docs 95,8 M zamiast 39,2 M (§2 pkt 12); (5) porządkowe: gemini poza listą skilli przez `disable-model-invocation` (tylko komenda); D = ~0,14% kontekstu startowego agenta, po `tools:` zero; 14 skilli szablonu na liście agenta bez opisu (budżet listy, 310 skilli → higiena konta); usunięcie wymaga poprawek README i `learnings-researcher.md:256`; szablon mobile = osobna linia z własnymi, zmienionymi kopiami; C: zroastuj-mnie (84 w CLI) i dev-brainstorm (20) = „celowo”, nie „rzadko”. | **ROZSTRZYGNIĘTE 2026-09-23 (6a pkt 20):** D i E WYPADAJĄ w całości (tryb ręczny execute/review zredukowany do workflowów; dev-ideate, freshness-audit + wf usunięte) → lista zmian §10; panel ich nie projektuje; A/B/C → objąć przez §2 |
+| skill `code-review` | drugi, niezależny roster review poza pipeline'em; po przeprojektowaniu osi zostanie ze starym | ROZSTRZYGNIĘTE 2026-09-23: usunąć (6a pkt 20) |
+| `freshness-audit` (skill + `freshness-audit-wf.js` 16 kB) | gotowy mechanizm na „czy reviewer jest aktualny", nieużyty i nieoceniony | ROZSTRZYGNIĘTE 2026-09-23: usunąć skill i workflow (6a pkt 20) |
+| `templates/e2e-env`, `templates/smoke-autopilot` | źródło parametryzacji E2E (`.env.e2e.example`); smoke-autopilot = jedyny scenariusz testowy maszynerii | objąć przez §2 pkt 6 |
+| `.claude/workflows/__tests__/` (7 plików, 74 testy) | przypinają dzisiejsze zachowanie; każdy projekt je łamie; koszt NIE jest kryterium sędziów | projekt mówi, które testy zastępuje testem budżetu instrukcji (§2 pkt 3) i testem telemetrii |
+| treść skilli `skills:` builderów (supabase-dev-guidelines, tailwind-react-guidelines, ux-ui-guidelines, security, sentry-integration, figma-design-to-code, agent-browser) | zostają (6a pkt 15); stosowanie POTWIERDZONE mini-runem (c) (treść, która dotarła, stosowana 2/2); aktualność nieoceniona | podzielić na stałą/referencyjną (§2 pkt 3) — porządkowo, nie koniecznie |
+| oś code-quality: `architecture-strategist.md` (angielski, „architektura") + fokus z trzema osiami w `dev-docs-review-wf.js:364` | prompt w dwóch miejscach (D3) | jedno miejsce promptu per oś |
+| `settings.json` `enabledPlugins dev-browser` vs `settings.local.json`; statusLine `npx -y ...@latest` | poza zakresem panelu | → etap higieny konta |
+
+## 8. Tezy całej analizy stojące na jednym filarze (ETAP3 §4, po D1) — do raportu jako lista założeń
+
+| teza | filar | co się sypie, jeśli fałszywa | stan po domknięciach |
+|---|---|---|---|
+| kontekst startowy ≈ 40–50% kosztu fazy (dawniej 25–35%) | **po przeglądzie D4:** przeliczenie agent po agencie z transkryptów dwóch epok (579 agentów; model trafia start u 80% agentów opusa co do 1%), zamiast arytmetyki ETAP3 §1.1; nadal jedno konto, jedno repo, jeden run po ścięciu CLAUDE.md | kolejność priorytetów | przeliczone w D4 (§1 pkt 4): 37% przed ścięciem, 51% w runie 20.09; kolejność stoi; dźwignie nie sumują się; **potwierdzone mini-runem (e): ≈48%, allowlista 35%, każda klasa 0,93–1,03 celu** |
+| polecenia-listy domkną 60–70% uwag B | ETAP1B §3 — oceny agentów, zero runów | strona jakościowa projektu „po": tańszy i gorszy naraz | D2 (po przeglądzie 2026-09-23): listy są marginalne wobec tła ~300–500 poleceń, ale procentów IFScale nie da się przenieść; oczekiwanie „60–70%” obniżone (D1 + 1b: raczej granica uwagi niż nadmiar reguł); **mini-run (d): liczba poleceń NIE jest dźwignią jakości (100 vs 400 = 25/25 vs 25/25)** → budżet §2 pkt 3 = porządek i koszt; jakość = małe naprawy (D1) |
+| nowe findingi po fixie = review kodu naprawczego | POMIARY §4 — atrybucja po pliku | architektura pętli fix, ocena zasięgu review | **D1 (po przeglądzie 2026-09-23): pół na pół** — 22/44 przeoczenia, 22/44 urodzone w fixach (w tym łańcuch 4); teza za mocna w obie strony; 3 powtórki, 2 zadania, 1 repo (§4) |
+| bramki nie kasują żadnej dodatkowej osi | POMIARY §2 — jedna konfiguracja, ±3 linie, 97/200 | utrzymanie osi zastępowalnej bramką | stoi (wniosek zachowawczy, L9) |
+| test-coverage do zdegradowania | ETAP2 §0 pkt 5; jedyny pomiar 0/31 | utrata 202 findingów, 31 uwag bez właściciela | **rozstrzygnięte: ZOSTAJE** (§1 pkt 2) |
+| sceptyk asymetryczny ~4× skuteczniejszy | 2 prace zewnętrzne, zero pomiaru u nas | brak wzmocnienia albo kasowanie prawdziwych P1/P2 | przyjęty z warunkiem odwrotu (§6) |
+| model kosztu opisuje dzisiejszy szablon | oferty-online bez N1–N9 | liczby „przed" bez punktu odniesienia | niska waga (§1 pkt 5) |
+
+## 9. Jawne ograniczenia do raportu etapu 5 (z ETAP3 §2, po decyzjach 6a pkt 18)
+
+L6 kill rate sceptyka niezmierzony · L7 model kosztu sprzed N1–N9 (uwaga, nie ryzyko) · L8 −50k = pusty agent w CLI na koncie z pełnym MCP; w runach z aplikacji
+desktop 54–77k (opus) / 37–53k (haiku) i zależnie od serwerów MCP podłączonych w sesji startowej, a tekst polski to ~2 zn/tok (przegląd D4) (**opisać jako wiedzę do
+podzielenia: jak radzić sobie z dużą liczbą MCP/skilli przez `tools:`**) · L9 pomiar 2: 97/200, ±3 linie, reguły ERROR nie liczone jako trafienia · L10 advisors niezmierzone
+(chmura) · L13 /bugfix zero danych · L16 miara sukcesu spadła 12,8 → 5,2/100 plików bez zmiany pipeline'u (typ kodu, nie rozmiar) — baseline per typ kodu przy
+pierwszym pomiarze · L18 packager bez pomiaru mandatu dossier · tabela tez §8. Do raportu dla operatora trzy zdania z ETAP2 §6 (reguły w tekście są pomijane;
+bot łapie nas modelem, nie linterami — po POMIARY §2; powtarzanie review kupuje 1 prawdziwy defekt za 4–5 fałszywych; sceptyk działa 4× słabiej, bo dostaje odpowiedź razem z pytaniem).
+
+## 10. Lista zmian szablonu POZA panelem (wdrożenie bez decyzji projektowej)
+
+L19 generator `coderabbit-base.yaml` + opis w skillu · martwe agenty kieran/simplicity → usunąć po wykorzystaniu treści (L14) · parametryzacja E2E (`.env.e2e`)
+w szablonie (L11, ETAP1 e2e) · `/bugfix` kandydat do usunięcia (L13) · `error-handling-reminder.sh` po bramce ESLint (L14) · skrypt `doctor` (6a pkt 12) ·
+CLAUDE.md po merge'u + `docs/decisions/` (6a pkt 1, 11) · 8 zmian `.coderabbit.yaml` PRZED pomiarem dev-pr (6a pkt 11) · bramka „zielony main" w bootstrapie (6a pkt 17) ·
+drobne z przeglądu runów rek. 7 (`complete` pomija `*.bak`; `fazyUkonczone` liczyć po stanie zadania; stopka commita STOP z pustą linią) · bramka czystości: brudny
+wyłącznie katalog zadania → commit i kontynuacja, nie STOP (rek. 4). **Decyzje operatora 2026-09-23 (HANDOFF 6a pkt 20) — usunąć z szablonu:** code-review, code-quality, gemini, dev-docs-update, bugfix, dev-ideate,
+freshness-audit (+ wf), tryb ręczny dev-docs-execute/dev-docs-review jako skille (workflowy `-wf` zostają; treść SKILL.md czytaną przez agenta w runie
+przenieść przed usunięciem; opisy builderów przepiąć); README i `learnings-researcher.md:256`; mobile osobno. Panel projektuje BEZ tych elementów.
+Etap higieny konta: `cleanupPeriodDays` = 120 dni (operator: TAK, 2026-09-23) — wcześniej jako propozycja: — retencja
+transkryptów ~30 dni w aktywnym projekcie skraca okno skanu telemetrii i importu (przegląd D5, porządkowe; luka z kontroli odwrotnej D4). **Otwarte decyzje operatora z przeglądu runów (poza panelem):** scalenie odzyskanej telemetrii
+z oryginałem (→ import w D5, §12), parametryzacja E2E przed następnym zadaniem w oferty-online.
+**Po mini-runie (N2, 2026-09-23):** instrukcje i skille są buforowane w sesji → po każdej zmianie w `.claude/` (sync-template, allowlista, przeniesienie learned-patterns)
+nowa sesja przed autopilotem: komunikat na końcu sync-template + zdanie w skillu dev-autopilot-wf.
+
+**Obszar: prompty maszynerii (prompt-audit 2026-09-24, HANDOFF 6a pkt 25; `PROMPT-AUDIT.md`, diff `dane/pa-proponowany.diff` — 62 hunki, mapa hunk → ID
+w nagłówku, `git apply --include=<plik>` bierze pojedyncze pliki).** Stały obszar zmian szablonu, aktualizowany cyklicznie.
+- **Iteracja zmian szablonu, niezależnie od panelu** (poprawki faktów i kontraktów, każdy projekt i tak by je przyjął): PA-03 memoizacja vs React
+  Compiler (performance + fokus osi), PA-04 `getSession()` w security, PA-09 odwołania do nieistniejącego opisu w BLOK_SEMANTYKA, PA-12 nazwy narzędzi
+  Figma MCP, PA-13 planner „11 KB” i fałszywy powód, PA-14 compound bez „kontekstu z sesji”, PA-16 archiwizacja nie edytuje CLAUDE.md (6a pkt 1),
+  PA-19 niewykonalny krok buildera fullstack, PA-20 nieistniejące osie w spec-compliance, PA-08 / PA-10 / PA-11 frazy migracyjne, archeologia
+  incydentów, rok na sztywno, PA-15 hashe commitów fixa dla `fix:pre-skan` i `fix:kontrola`, PA-17 ton zasad Sentry, PA-18 hook error-handling
+  (do czasu bramki ESLint), PA-21 `Scope:` dla repo-research-analyst w dev-plan.
+- **Warunkowo:** PA-01, 02, 05, 06, 07 (pliki reviewerów) — teraz tylko, gdy pliki klas ról z panelu są dalej niż jedna iteracja; inaczej zasady z §2a.
+  PA-39 (trzy zachodzące checklisty security) = przepisanie security 191 → ~90 linii z ETAP1 (§2a). PA-22, 24, 27, 29, 30, 31 → panel (§2a).
+- **Decyzje operatora przy wdrożeniu:** PA-25 odświeżyć kopię `figma-design-to-code` z pluginu (brak sekcji o obrazach i ikonach, martwe linki) albo
+  przejść na `figma:figma-design-to-code`; PA-26 materiał do przepisania `coding-rules.md` (tabela „10 anty-patternów AI” = cechy modelu + powtórzenie,
+  „nie modyfikuj swoich reguł” vs compound, podwójne „uruchom testy przed gotowe”).
+- **Niskie (PA-23, 28, 32–38, 40–44):** przy okazji zmian w danym pliku; lista w `PROMPT-AUDIT.md` §3.
+- **Metryki:** `dane/d5b-mapa-walidacji.txt` §7 (nowe pole `agent.effort` — `dane/d5-telemetria-rekord.txt` §10).
+- **Cykl:** ponowny `/claude-api prompt-audit` z tym samym Step 0 przy każdej zmianie modelu pipeline'u, po wdrożeniu plików klas ról i po każdej iteracji
+  dotykającej promptów (`skrypty/pa_*.py` do powtórzenia, kontrola w obie strony). Po naniesieniu zmian — nowa sesja przed autopilotem (N2).
+- **Zasada zmian promptów (6a pkt 26 (f)):** treść zmian według wytycznych Anthropic (skill `claude-api` prompt-audit, przewodnik migracji modelu); zmiany
+  promptów reviewerów i builderów sprawdzane przed/po na jednej historycznej fazie metodą ślepą — zadanie bez słów eval/test/judge/candidate, sędzia widzi
+  neutralne etykiety i ocenia oba warianty w jednym przebiegu, przestrzeganie instrukcji oceniane z transkryptu (otwarte pliki), nie z deklaracji agenta.
+
+**Obszar: inspiracje 2026-09-24 (HANDOFF 6a pkt 26, `INSPIRACJE-POCOCK-PSTACK.md`) — zmiany szablonu poza panelem:**
+- **Compound ze szczeblem:** przed zapisem reguły pole `szczebel: kod | lint | regula`; `kod`/`lint` → `propozycjeBramek[]` w raporcie (obok
+  `propozycjeDoReviewerow[]`), decyzja operatora; do learned-patterns tylko `regula`. Przy przepisaniu compoundu pod §2 pkt 4 — jedno pole frontmattera więcej.
+- **coding-rules §2 — wyjątek od „nie usuwaj testów” (operator: TAK):** wolno usunąć tylko zielony test niefalsyfikowalny, gdy nie da się przepisać asercji;
+  czerwonego nigdy; każde usunięcie w raporcie fazy (nazwa + powód). Plik operatora — treść zatwierdzona, naniesienie w iteracji etapu 5.
+- **Odbiór bramek:** test porażki na podłożonym naruszeniu dla każdej bramki (ESLint, knip, size-limit, `migrations.sum`, niezmienność migracji, advisors,
+  zielony main, granice z §2 pkt 15).
+- **Lint a stary kod (operator):** kod poprawiamy PRZED uruchomieniem nowego workflow; pierwsze wdrożenie ESLint w projekcie = osobne zadanie sprzątające
+  (oferty-online 188 zastanych błędów — POMIARY §3; plus 5 plików z importem klienta Supabase z §2 pkt 15); każda późniejsza reguła lint (z compoundu,
+  ogrodnika) wchodzi razem z posprzątaniem starych miejsc w tej samej zmianie.
+- **Metryki:** `dane/d5b-mapa-walidacji.txt` §8.
+
+## 11. Mini-run PRZED panelem (6a pkt 16 + dodatki) — **ZROBIONY 2026-09-23** (`MINI-RUN-WYNIK.md`, wersja operatora `MINI-RUN-DLA-OPERATORA.md`), metoda markerów z pomiaru 1
+
+Jedno małe zadanie buildera, trzy pytania: (a) czy reguła-marker wklejona przez orkiestrator do promptu delegacji („każdy nowy plik zaczyna się komentarzem X")
+jest STOSOWANA w kodzie; (b) to samo dla reguły przez `paths:` (kontrola); (c) czy treść skilla wstrzykniętego przez `skills:` jest stosowana (marker w SKILL.md
+testowym), czy tylko zajmuje kontekst. Dodatki: (d) ta sama para markerów w prompcie ~100 vs ~400 instrukcji (6a pkt 18 po D2) — **po przeglądzie D2 (2026-09-23) test ROZSTRZYGAJĄCY, nie dodatek:**
+jedyny pomiar, czy liczba poleceń jest u nas dźwignią jakości (procenty IFScale mierzą inną jednostkę); marker ginie wyraźnie częściej przy ~400 → budżet 150 jest celem
+jakościowym; nie ginie → budżet zostaje jako porządek i koszt, a główną dźwignią jakości są małe naprawy (D1) i ewentualnie równoległe próbki; (e) odczyt `usage` pierwszej
+tury per klasa roli — potwierdzenie dźwigni ≈ 40–50% i celów `ctx_start` per klasa i model (przegląd D4, §1 pkt 4, §12; dawniej „25–35%” z ETAP3 §1.1);
+zapisać też zestaw narzędzi sesji, z której startuje mini-run (aplikacja desktop / CLI), bo od niego zależy część allowlisty; **po przeglądzie D3 (2026-09-23) to także PUNKT ODNIESIENIA kontekstu startowego per klasa i per model
+na obecnym stanie repo (po ścięciu CLAUDE.md, przed `tools:`)** — telemetria sprzed 09-21 miesza epoki różniące się prawie 2×; **po przeglądzie D5: pierwszy
+punkt odniesienia już jest (run 20.09, §4 D3), więc (e) to potwierdzenie per model; odczyt przez załączniki transkryptu (liczba narzędzi, skilli, pliki instrukcji),
+nie tylko `ctx_start`.** Dodatkowo (f, przegląd D5): czy plik harnessu `workflows/<run>.json` powstaje dopiero po zakończeniu runu i co zostaje po zabiciu sesji
+głównej; czy hook Stop (wariant C) odpala się po task-notification. Zero dodatkowych agentów analizujących. Wynik rozstrzyga wariant learned-patterns i czy `skills:` zostaje bez zmian.
+
+**WYNIK (akceptacja operatora 2026-09-23; 46 agentów w ważnych seriach, Opus 5.5 / Haiku 4.5, kopia oferty-online, serie E+D+A ~5,2 M jedn.; kryteria zapisane przed startem — `MINI-RUN-PLAN.md` §7):**
+(a) **DZIAŁA** — markery wklejone do promptu delegacji stosowane 15/15 w pełnym kontekście dziś i 25/25 przy samym prompcie → wariant learned-patterns §2 pkt 4 potwierdzony;
+(b) **POTWIERDZONE** — `paths:` dostarczył regułę 0/3 (buildery czytały migracje Bashem), §1 pkt 1 bez zmian; (c) **STOSOWANA** — treść skilla, która dotarła, stosowana 2/2
+(dostawa zaburzona buforem skilli sesji, §2a N2) → `skills:` bez zmian; (d) **BRAK DŹWIGNI** — 100 vs 400 poleceń 25/25 vs 25/25 (0 pp, Fisher p = 1,0), ramię 400
+droższe o 72% → budżet §2 pkt 3 = porządek i koszt, nie cel jakościowy; (e) **POTWIERDZONE** — start każdej klasy 0,93–1,03 celu §12, dźwignia ≈48% (pełna metoda;
+49,4% wagami uproszczonymi), sama allowlista 35,2%; środowisko: aplikacja desktop, Claude Code 2.1.280, 42 schematy narzędzi, 676 nazw odroczonych; komórki
+niemechaniczne E2 liczone z korektą learned-patterns (bufor instrukcji sesji; stawka d4r sprawdzona na tym samym runie, +0,9%); (f) plik harnessu powstaje tylko
+po końcu runu (7/7), po zabiciu sesji go nie ma (journal `started` bez `result`), hook Stop odpala po każdej odpowiedzi, także na task-notification, z `background_tasks`
+→ §12. Ograniczenia: markery formalne (górna granica przestrzegania), jedno zadanie warstwy danych, builder bez uruchamiania testów. Ustalenia poboczne N1–N3 → §2a.
+
+## 12. Telemetria mechaniczna — rekord i miejsce w runie (D5, 2026-09-21; pełny szkic: `dane/d5-telemetria-rekord.txt`)
+
+**Dziś:** jeden wpis per run dopisywany przez agenta haiku (`zapiszTelemetrie()`, `dev-autopilot-wf.js:1028-1087`, także w `stopRun()`), który 2× skasował plik;
+`tokenyRazemK` = `budget.spent()` = WYŁĄCZNIE tokeny wyjściowe (~11% kosztu po przeglądzie D5; wcześniej podawane 2% — model etapu 0 brał pierwszy, częściowy
+wpis `usage`); poziom agenta nie istnieje. **Ograniczenie twarde:** skrypt workflowu nie ma dostępu do plików ani Node (workflow-authoring), więc orkiestrator nie
+dopisze rekordu sam. Dziennik runu nie zapisuje wyniku końcowego, ALE **(przegląd D5) harness zapisuje po każdym runie `<sesja>/workflows/<run>.json`** (156/156 runów,
+oba formaty journala): status completed/killed/failed, zwrócony wynik (OK/STOP + powód), argumenty, `log()`, pełny skrypt głównego workflowu i listę agentów
+z etykietą, grupą i próbą — więc status nie wymaga sesji głównej.
+
+**Źródła na dysku (zero tokenów, zweryfikowane na runie z 85 agentami):** `journal.jsonl` (label, phase, result strukturalny każdego agenta — w tym `findings`
+reviewerów), `agent-<id>.jsonl` (usage per odpowiedź API z cache read/write, model, timestampy, tool_use), `agent-<id>.meta.json` (agentType), `.autopilot-state.json`
+(metryki fazy). Etykiety agentów w workflowach-dzieciach nie niosą numeru fazy — faza = najbliższa wcześniejsza grupa „Faza N” (przegląd D5: 2 555/2 891 agentów
+autopilota z numerem, 335 poziom runu; „#N” w nazwie grupy to numer wywołania, nie fazy); dopisanie numeru do etykiet = wygoda, nie warunek.
+
+**Rekord (jeden plik `~/.claude/telemetry/pipeline.jsonl`, append-only, klucz idempotencji `run|typ|id`, trzy typy; alternatywa z rek. 1 przeglądu runów — plik per run
++ globowanie katalogu — była lekiem na agenta kasującego wspólny plik; przy skrypcie, który nigdy nie otwiera pliku do nadpisania, oba formaty są bezpieczne, wybór przy wdrożeniu).
+Po przeglądzie D5: `agent` dopisywany, gdy klucza brak (agentId unikalny); `run` i `faza` — nowa wersja przy zmianie, raport bierze OSTATNIĄ per klucz (wznowienie
+= ten sam runId, 9/9; dwie sesje kończą odpowiedź w ciągu 2 s w 6,6% przypadków → deduplikacja przy odczycie, nie sprawdzanie kluczy przed zapisem):**
+- `agent` — id, etykieta, faza, rola (jak `rola()` w `koszt_agentow.py`, z dopasowaniem najdłuższej nazwy — przegląd D5), **klasa_roli** (mechaniczny/orkiestracyjny/reviewer/sceptyk/builder/naprawiacz/tester-e2e),
+  agentType, model, tury, in/cache_w/cache_r/out/thinking, koszt_jedn (pełny cennik), **ctx_start** (kontekst pierwszej tury = miara dźwigni `tools:`), ctx_sr/max,
+  narzędzia, start/koniec/sekundy, wynik (ok/null/brak/**blad**), **proba**, findingi p1/p2/p3 (reviewerzy), obalone (sceptycy), instrukcje_stale (**po D5: liczone
+  tym samym modułem co test budżetu — blok poleceń w prompcie delegacji z transkryptu + w pliku agenta**), **kontekst {claude_md_zn, rules_zn, learned_zn,
+  narzedzia_n, skille_n}** (z załączników transkryptu — bezpośredni odczyt `tools:`/`omitClaudeMd`, np. 972 narzędzia i 309 skilli dziś; po przeglądzie D4 także
+  rozmiary w znakach: tools_zn, odroczone_zn, skille_zn, instrukcje per plik — raport przelicza nimi dźwignię metodą `d4r_dzwignia_kontekstu.py`), **cc_wersja**.
+  Koszt: ostatni wpis `usage` każdej odpowiedzi API (pierwszy zaniża output — przegląd D5).
+- `faza` — status, liczniki, przebieg (skrót jak dziś), **findingi_per_os**, e2e {pass, fail, skip, **manual[] z powodem** (L11)}, fix, kontrolaFixa (z `regresje`),
+  **bramki** {typecheck, eslint, knip, sizeLimit, migracje, advisors, stryker: status + sekundy}, koszt per etap, sekundy.
+- `run` — status OK/STOP/KILLED/FAILED/NIEZNANY (NIEZNANY tylko bez pliku harnessu; `zrodlo_statusu` usunięte po D5), powód, **stop_kategoria** (E2E-środowisko /
+  E2E-asercja / fix-FAIL / P1 / scribe / czystość / inne), manual_razem, fazy, walidacja, e2eSrodowisko, solution, koszt razem, sekundy, **szablon {marker
+  `.template-version`, skrypt_sha — hash skryptu, który się wykonał, zgodny z manifestem, dzieci_zmienione}** (po D5: sha repo projektu nie mówi, co się
+  wykonało — 33/55 runów autopilota puściło skrypt spoza historii szablonu, marker brak w 6/11 repo; sync-template dopisuje hash per plik do manifestu).
+
+**Skrypt i miejsce w runie (propozycja, zero agentów w każdym wariancie):** `.claude/scripts/telemetria/zbierz.mjs` (Node, port `koszt_agentow.py`; test na fixture
+w `__tests__`) + `raport.mjs`; z orkiestratora znika agent telemetrii (2 wywołania) i `tokenyRazemK`. **Po przeglądzie D5 (2026-09-23, przyjęte):**
+**B `--skan` = GŁÓWNY zapis** — status, powód, etykiety, grupy i skrypt z pliku harnessu (heurystyka „ostatnia etykieta” trafiała 32/55 runów, STOP 12/30;
+reguła „ostatni agent bez wyniku = run w toku” gubiła na zawsze 4 zakończone runy, w tym 3 przerwane); run w toku = brak pliku harnessu. **A (krok
+w skillach z `--status/--powod`) ZBĘDNY.** **C (hook Stop z `--skan --szybko`) = wyzwalacz — SPRAWDZONY w mini-runie (f):** hook odpala po każdej odpowiedzi
+sesji, także na task-notification, a wejście niesie `background_tasks` ze statusem runów → skan, gdy żaden run nie jest `running`. **Mini-run (f): zabicie sesji w trakcie
+runu (SIGTERM/SIGKILL) nie zostawia pliku harnessu** (journal `started` bez `result`) — „brak pliku” = w toku ALBO przerwany z sesją; skan rozróżnia po tym, czy run jest
+w `background_tasks` żywej sesji, i zapisuje przerwany jako KILLED z powodem „sesja zakończona”. Obok skan w doctor przy każdym runie —
+retencja transkryptów ~30 dni w aktywnym projekcie (oferty-online od 22.08; 7 tygodni tylko w rzadko otwieranych — przegląd D6), więc sam raport miesięczny to za rzadko.
+
+**Raport miesięczny:** koszt per projekt/zadanie/run i udziały per etap i klasa roli (vs ETAP0 28/25/6/5/17/12% — grupowanie digestu, w którym tester E2E należy
+do „orkiestracja+e2e”, a nie do reviewerów; `d5r-koszt-output.txt` §2 grupuje inaczej: reviewerzy 29,3%, orkiestracja 8,8% — port raportu ma jedno jawne grupowanie
+ról i nim przelicza punkt odniesienia, przegląd D4); ctx_start per klasa roli **i per model** (czy allowlista działa: najpierw `agent.kontekst.narzedzia_n` 972 → ~5
+i claude_md_zn = 0 u mechanicznych; cele ctx_start po przeglądzie D4, stan z 20.09, z promptem zadania: mechaniczne ~9–10k, orkiestracyjne/sceptycy/naprawiacze
+opus ~25–26k, naprawiacz haiku ~21k, reviewerzy ~29k, buildery ~38k — dawne ~4,5k / ~15k / ~25k były pustym agentem bez promptu i szacunkiem ETAP3; haiku liczy
+ten sam tekst jako 0,742 tokena opusa, więc cele per model; **cele potwierdzone mini-runem (e) na Opus 5.5 / Haiku 4.5: zmierzone 8,8k / 25,5k / 26,0–27,0k / 20,3k /
+28,1–29,7k / 38,6k = 0,93–1,03 celu**); findingi per oś, kill rate sceptyka, P1/P2 po fixie; runy per zadanie, STOP-y per kategoria,
+MANUAL per powód, bramki PASS/FAIL i czas; max instrukcje_stale per rola vs 150; anomalie (agent/faza > 2× mediany). **Wymóg dla każdego projektu panelu:** rekord
+w tym kształcie (pola mogą być null, klucze nie mogą zniknąć) i wynik runu zwracany z workflowu (status + powód), bo z niego czyta skan.
+
+**Decyzja operatora (6a pkt 19):** wariant A + siatka B przyjęte; C do sprawdzenia w mini-runie (sprawdzony 2026-09-23 — działa, (f) w §11). **Po przeglądzie D5 (akceptacja 2026-09-23):** zasada stoi (zero agentów,
+skrypt po runie, siatka obowiązkowa), wariant A odpada jako zbędny, B jest głównym zapisem.
+
+**Mapa walidacji zmian (D5b, 2026-09-22, wersja 2 po akceptacji 9 poprawek operatora — `PROPOZYCJA-POPRAWEK-MAPY-WALIDACJI.md`; pełny tekst:
+`dane/d5b-mapa-walidacji.txt`, 21 wpisów; liczby jakości: `skrypty/d5b_baseline_jakosci.py` → `dane/d5b-baseline-jakosci.txt`).** Dla każdego z 13 wymogów §2
+i 8 założeń §6: METRYKA → POLA rekordu (typ.pole) → BASELINE → HORYZONT → dla założeń ODWRÓT tymi samymi polami; pole bez producenta ma dopisek
+„WYMAGA ZMIANY: <miejsce>". **Konwencja horyzontów:** KONFIGURACJA = 1 faza (ctx_start per klasa, bramki, budżet instrukcji, telemetria); KOSZT/TURY
+= 5 faz (rozrzut tur p50 39 / p90 83); JAKOŚĆ = okno 5 PR (5 faz ≠ 5 PR: zadanie ma 3–6 faz i 1 PR). **MIARA JAKOŚCI (wspólna):** B P1/P2 bota
+NA 100 PLIKÓW PR (PR-y 12–160 plików), per typ kodu i per oś (kolumna `etap` z 1b, nie filtr po nazwie klasy); baseline = epoka wrześniowa PR 13–19
+(3,5/100; sierpień 9,3 — jakość spadała sama, średnia 6,7 dałaby fałszywą „poprawę", L16); porównania pipeline'u względem **B0 zebranego po 8 zmianach
+`.coderabbit.yaml`** (inny przyrząd); **próg odwrotu** per oś w oknie 5 PR ≥ max(3, 2 × oczekiwana), klasa = diagnoza (dziś: correctness 14, test 12,
+security 10, spec 4, perf 3); **po przeglądzie D5: liczymy UNIKALNE wątki bota per PR (klucz = zadanie, `klasy[].id`) — suma po runach dev-pr zawyża
+o 43% (255 vs 178) i nierówno, najbardziej PR-y z wieloma turami**. Przykłady: `tools:` → `agent.kontekst.narzedzia_n` (dziś 972 → kilkanaście) i p50 `agent.ctx_start`
+per klasa i model vs punkt odniesienia z runu 20.09 (§4 D3) potwierdzonego mini-runem (e) (telemetria 67–118k to średnia epok, D3 po przeglądzie)
+(cele po przeglądzie D4: mechaniczne ~9–10k, orkiestracyjne/sceptycy ~25–26k, reviewerzy ~29k, buildery ~38k — spadek o 70–90%), 1 faza; pętla fix →
+B P1/P2 bota na 100 plików fixa vs reszta PR: dziś **14,0 vs 4,7 (wrzesień 7,2 vs 2,2) ≈ 3×**, cel: stosunek spada; sceptyk → DISAGREE_EVIDENCE/
+weryfikowane vs 12% / 19,2% / 10,9%, odwrót: kill rate >50% i ≥3 B P1/P2 w miejscach obalonych w oknie 5 PR; scalenie dev-plan+dev-docs → pełny koszt
+epizodu (do następnego skilla + subagenci) i liczba wiadomości operatora vs mediany dev-plan 2,39 M + dev-docs 0,56 M, wiadomości 1 + 0 (przegląd D6; dawne
+930k + 707k i 47 + 67 min = pierwsza odpowiedź skilla i średnie zawyżone sesjami otwartymi na noc). **Kolejność odczytów (mapa §6):** ustawienia i koszt równolegle; zmiany jakościowe rozłącznych osi
+równolegle w jednym oknie; zmiany przekrojowe (budżet instrukcji, wycinek wiedzy, polecenia-listy naraz, kontekst reviewerów, sceptyk, fix tylko P1/P2)
+mają okno 5 PR dla siebie.
+**Kontrola odwrotna (mapa → rekord D5): 16 brakujących pozycji dopisanych do rekordu (`d5-telemetria-rekord.txt` §7):** `agent.prompt_zn`,
+`agent.narzedzia.mcp`, `agent.weryfikowane`, `agent.werdykty{agree, disagree_evidence, disagree_concern}`, `faza.sceptyk`, `faza.wiedza{indeks_zn,
+claude_md_zn, wycinek_*}`, `faza.fix.pliki[]`, `faza.fix.linie_diff`, `faza.fix.p1_z_testem`, `faza.review_rundy`, `faza.dossier_zn`,
+`faza.bramki.eslint.{trafienia, reguly[]}` + `bramki.testyTypow`, `run.profil_stacku`, `run.smoke{pozycje, z_manual}`, **`run.pr{pliki, koszyk, klasy[], rekomendacja}`
+dla dev-pr — najważniejsze: bez niego żadna miara JAKOŚCI (P1/P2 od bota po naszym review, HANDOFF §1) nie ma źródła** (producent: rozszerzony schemat
+istniejącego agenta `pr:zbierz` o klasę/oś/wagę, zero nowych agentów; `ma_regule` skryptem; pole „dlaczego przeoczone" wypada z runu → próbka w raporcie
+miesięcznym; przed porównaniami kalibracja klasyfikatora na 2–3 starych PR vs 1b), oraz **nowy typ `skill`**
+(epizod skilla w sesji głównej, port `koszt_skilli.py` z POPRAWIONĄ granicą po przeglądzie D6: koniec = następny skill albo koniec sesji, nie
+pierwsza wiadomość typu user; subagenci po `toolUseId`; deduplikacja kopii wznowionych sesji; pola `pierwsza_odpowiedz_jedn`, `wiadomosci_operatora`)
+— bez niego §2 pkt 12 nie ma odczytu. **Po przeglądzie D5 dochodzą (`d5-telemetria-rekord.txt` §8):**
+`agent.kontekst`, `agent.cc_wersja`, `agent.proba`, wynik `blad`, `run.szablon{marker, skrypt_sha, zgodny, dzieci_zmienione}`, `run.pr.klasy[].id`; `faza.wiedza`
+z załącznika transkryptu, nie z repo (u 188/689 agentów CLAUDE.md ≠ main). Import baseline (plan etapu 5; `agents.csv` PRZELICZONY z ostatnim wpisem `usage`
+i poprawioną `rola()` — przegląd D5): `agents.csv` → agent,
+odzyskana telemetria → faza/run v0, `skille.csv` → skill (PRZELICZONY z granicą z przeglądu D6 — `skrypty/d6r_rewizja_audytu.py`), `klasyfikacja-574.csv` + rozmiary PR z gh → `run.pr` dla 19 PR (tło jakości i epoka wrześniowa;
+właściwy baseline porównań = B0; import załatwia otwartą decyzję o scaleniu odzyskanej telemetrii). Trzy rzeczy poza telemetrią, mierzone PRZED wdrożeniem: kill rate sceptyka na archiwalnych findingach, warstwy 2–3 testów
+na 31 uwagach, stosowanie treści `skills:`/wycinka (mini-run §11 — ZROBIONE 2026-09-23: stosowane). **Konsekwencja dla etapu 5: iteracja 1 = telemetria + import baseline; potem 8 zmian
+`.coderabbit.yaml` + kalibracja klasyfikatora uwag bota + zebranie B0 z 2–3 zadań PRZED pierwszą zmianą pipeline'u; każda kolejna iteracja wchodzi z parą
+(zmiana, wpis z mapy), zaplanowanym odczytem po 1 / 5 fazach / oknie 5 PR i regułami kolejności odczytów.** Wymóg §2 pkt 13 stoi na tej mapie.

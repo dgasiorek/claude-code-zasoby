@@ -53,6 +53,39 @@ command -v git >/dev/null 2>&1 || { echo "BŁĄD: brak 'git' w PATH." >&2; exit 
 
 VERSION_FILE="$PROJECT_DIR/$MANAGED_ROOT/.template-version"
 MANIFEST_FILE="$PROJECT_DIR/$MANAGED_ROOT/.template-manifest"
+# Odciski plików (hash gita) z chwili syncu — telemetria porównuje z nimi skrypt, który się faktycznie wykonał
+# (`run.szablon.zgodny`, .claude/scripts/telemetria/szablon.mjs). Osobny plik, żeby nie zmieniać formatu manifestu,
+# na którym stoi wykrywanie usuniętych plików (REMOVE).
+HASHES_FILE="$PROJECT_DIR/$MANAGED_ROOT/.template-hashes"
+# Wywolywana po zapisie manifestu. Jeden proces gita dla wszystkich plików (stdin-paths), wiersz: <hash>\t<ścieżka względna>.
+zapisz_hashe() {
+  local hashe
+  hashe="$(printf '%s\n' "${MANAGED[@]/#/$PROJECT_DIR/}" | git hash-object --stdin-paths)"
+  paste <(printf '%s\n' "$hashe") <(printf '%s\n' "${MANAGED[@]}") > "$HASHES_FILE"
+}
+
+# Pierwsza instalacja (brak .template-version przed syncem): doctor projektu (PLAN-POPRAWY P2) — brak narzędzia ma
+# wyjść teraz, nie w pierwszym runie. Wynik doctora nie zmienia kodu wyjścia syncu: sync się udał, braki to zadanie
+# dla usera (tabela z komendami instalacji). Szablon sprzed P2 nie ma doctora — wtedy krok się nie odbywa.
+doctor_pierwszej_instalacji() {
+  local doctor="$PROJECT_DIR/$MANAGED_ROOT/scripts/doctor/doctor.sh" kod=0
+  [[ -z "$LOCAL_SHA" && -f "$doctor" ]] || return 0
+  echo "--- DOCTOR (pierwsza instalacja) ---"
+  bash "$doctor" "$PROJECT_DIR" || kod=$?
+  echo "DOCTOR_KOD: $kod"
+}
+
+# Runner testów projektu (P22 A1) — przy każdym syncu, nie tylko pierwszym: vitest/jest bez wykluczenia .claude/**
+# zbiera testy maszynerii (node:test) i autopilot zatrzymuje się na `npm test` na starcie. Linia tylko przy problemie, z gotową poprawką.
+runner_testow() {
+  local skrypt="$PROJECT_DIR/$MANAGED_ROOT/scripts/doctor/runner-testow.mjs" wynik element stan szczegol poprawka
+  [[ -f "$skrypt" ]] && command -v node >/dev/null 2>&1 || return 0
+  wynik="$(node "$skrypt" "$PROJECT_DIR" 2>/dev/null)" || return 0
+  IFS=$'\t' read -r element stan szczegol poprawka <<< "$wynik"
+  [[ "$stan" == BRAK ]] || return 0
+  echo "RUNNER TESTÓW: $szczegol — poprawka: $poprawka"
+}
+
 
 # --- Przygotuj źródło (klon albo lokalna ścieżka) ---
 TMP_CLONE=""
@@ -91,6 +124,7 @@ if [[ "$FORCE" -eq 0 && -n "$LOCAL_SHA" && "$LOCAL_SHA" == "$UPSTREAM_SHA" ]]; t
   echo "STATUS: UP_TO_DATE"
   echo "SHA: $UPSTREAM_SHA"
   echo "Szablon jest aktualny — brak zmian w workflow do zaciągnięcia."
+  runner_testow
   exit 0
 fi
 
@@ -166,7 +200,10 @@ if [[ "${#ADD[@]}" -eq 0 && "${#UPDATE[@]}" -eq 0 && "${#REMOVE[@]}" -eq 0 ]]; t
   # Treść identyczna, różnił się tylko SHA — zaktualizuj marker i wyjdź.
   printf '%s\n' "$UPSTREAM_SHA" > "$VERSION_FILE"
   printf '%s\n' "${MANAGED[@]}" > "$MANIFEST_FILE"
+  zapisz_hashe
   echo "APPLIED: brak różnic w plikach — zaktualizowano tylko marker wersji."
+  runner_testow
+  doctor_pierwszej_instalacji
   exit 0
 fi
 
@@ -240,8 +277,13 @@ for rel in "${REMOVE[@]+"${REMOVE[@]}"}"; do prune_empty_dirs "$rel"; done
 # --- Zaktualizuj marker wersji i manifest ---
 printf '%s\n' "$UPSTREAM_SHA" > "$VERSION_FILE"
 printf '%s\n' "${MANAGED[@]}" > "$MANIFEST_FILE"
+zapisz_hashe
 
 echo "APPLIED: zaaplikowano zmiany."
 if [[ "${#UPDATE[@]}" -gt 0 || "${#REMOVE[@]}" -gt 0 ]]; then
   echo "BACKUP: $BACKUP_DIR"
 fi
+# N2: instrukcje i skille są buforowane w sesji — autopilot w sesji sprzed syncu działałby na starej maszynerii.
+echo "NOWA SESJA: .claude/ się zmieniło — otwórz nową sesję Claude Code przed /dev-autopilot-wf (bieżąca sesja ma w pamięci starą maszynerię)."
+runner_testow
+doctor_pierwszej_instalacji

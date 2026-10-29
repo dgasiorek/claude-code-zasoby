@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""Testy sekcji odczytu smoke'a P12 (smoke_p12.py). Uruchomienie: python3 -m unittest skrypty/smoke_p12_test.py (z katalogu analizy)."""
+import json, os, sys, tempfile, unittest
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import smoke_p12 as S
+
+REGULY = '/k/.claude/rules/coding-rules.md'
+
+
+def transkrypt(katalog, aid, prompt, uzycia=(), zalaczniki=()):
+    w = [{'type': 'user', 'message': {'content': 'start'}}, {'type': 'user', 'message': {'content': prompt}}]
+    w += [{'type': 'attachment', 'attachment': z} for z in zalaczniki]
+    w += [{'type': 'assistant', 'message': {'content': [{'type': 'tool_use', 'name': n, 'input': i}]}} for n, i in uzycia]
+    with open(os.path.join(katalog, 'agent-%s.jsonl' % aid), 'w') as f: f.write('\n'.join(json.dumps(x) for x in w))
+
+
+def agent(aid, rola, klasa, rules_zn=0, ctx=1000):
+    return {'id': aid, 'rola': rola, 'klasa_roli': klasa, 'kontekst': {'rules_zn': rules_zn}, 'ctx_start': ctx}
+
+
+class Reguly(unittest.TestCase):
+    def test_odczyt_regul_read_bash_i_zalacznik_paths_oraz_kod(self):
+        with tempfile.TemporaryDirectory() as d:
+            transkrypt(d, 'b', 'IU\n' + S.NAGLOWEK_D10 + '\n- wyscig-i-wspolbieznosc: x\n- pii-i-sekrety: y\n\nkoniec',
+                       [('Read', {'file_path': REGULY}), ('Edit', {'file_path': '/k/src/a.ts'}), ('Bash', {'command': 'sed -n 1,5p .claude/rules/coding-rules.md'})],
+                       [{'type': 'nested_memory', 'path': REGULY, 'content': {'content': 'x'}}])
+            r = S.reguly(d, 'b')
+            self.assertEqual((r['read'], r['bash'], r['paths'], r['kod']), (1, 1, 1, 1))
+            self.assertEqual(r['d10'], ['wyscig-i-wspolbieznosc', 'pii-i-sekrety'])
+            self.assertIsNone(S.reguly(d, 'brak'))
+
+    def test_wycinki_plannera_i_blok_w_prompcie_buildera(self):
+        with tempfile.TemporaryDirectory() as d:
+            wynik = {'tresc': '- [wysoka] migracja-bazy: Regula.\n' + S.NAGLOWEK_D10 + '\n- wyscig-i-wspolbieznosc: x', 'zapobieganie': {'klasy': ['wyscig-i-wspolbieznosc'], 'pominiete': 1}}
+            w = [{'type': 'user', 'message': {'content': 'planner'}},
+                 {'type': 'assistant', 'message': {'content': [{'type': 'tool_use', 'id': 't1', 'name': 'Bash', 'input': {'command': 'node .claude/scripts/wiedza/wiedza.mjs wycinek --zapobieganie --pliki a.ts'}}]}},
+                 {'type': 'user', 'message': {'content': [{'type': 'tool_result', 'tool_use_id': 't1', 'content': json.dumps(wynik)}]}}]
+            with open(os.path.join(d, 'agent-p.jsonl'), 'w') as f: f.write('\n'.join(json.dumps(x) for x in w))
+            self.assertEqual(S.wycinki_plannera(d, 'p'), [wynik])
+            self.assertTrue(S.blok_w_prompcie('Zadanie\n  ' + wynik['tresc'].replace('\n', '\n  ') + '\n', [wynik]))
+            self.assertFalse(S.blok_w_prompcie('Zadanie bez bloku', [wynik]))
+            self.assertTrue(S.blok_w_prompcie('cokolwiek', [{'tresc': '', 'zapobieganie': {'klasy': []}}]), 'pusty wycinek = nic do wklejenia')
+
+    def test_kryterium_67d(self):
+        with tempfile.TemporaryDirectory() as d:
+            transkrypt(d, 'b1', S.NAGLOWEK_D10 + '\n- seed-e2e: x', [('Read', {'file_path': REGULY})])
+            transkrypt(d, 'b2', 'bez bloku', [('Read', {'file_path': REGULY})], [{'type': 'nested_memory', 'path': REGULY}])
+            transkrypt(d, 'f', 'fix', [], [{'type': 'nested_memory', 'path': REGULY}])
+            transkrypt(d, 's', 'scribe', [])
+            transkrypt(d, 'h', 'haiku', [('Read', {'file_path': REGULY})])
+            agenci = [agent('b1', 'build', 'builder'), agent('b2', 'build', 'builder'), agent('f', 'fix', 'naprawiacz'),
+                      agent('s', 'scribe', 'orkiestracyjny'), agent('h', 'dedup:semantyczny', 'mechaniczny', rules_zn=500)]
+            k = S.kryterium(agenci, d)
+            self.assertEqual(k['eager'], ['dedup:semantyczny'])
+            self.assertEqual(k['buildery_bez_bloku'], 0, 'bez wycinkow plannera kontrola bloku nie dziala')
+            self.assertEqual(k['bez_kodu_z_regulami'], ['dedup:semantyczny'])
+            self.assertEqual(k['kod_bez_regul'], [])
+            self.assertEqual(k['podwojny_odczyt'], ['build'])
+            self.assertEqual(k['buildery_z_d10'], 1)
+            self.assertFalse(k['zielone'])
+            k2 = S.kryterium([a for a in agenci if a['id'] in ('b1', 'f', 's')], d)
+            self.assertTrue(k2['zielone'], k2)
+
+    def test_rola_bez_zmian_kodu_z_regulami_przez_paths_to_informacja(self):
+        # P16 (HANDOFF 6a pkt 73 g, 77 f): reviewer, sceptyk i kontrola fixa czytaja kod, wiec `paths:` dokleja im reguly — koszt,
+        # nie defekt konfiguracji. Czerwony jest jawny odczyt regul przez role, ktora kodu nie zmienia.
+        with tempfile.TemporaryDirectory() as d:
+            transkrypt(d, 'b', S.NAGLOWEK_D10, [('Read', {'file_path': REGULY})])
+            transkrypt(d, 'k', 'kontrola', [('Read', {'file_path': '/k/src/a.ts'})], [{'type': 'nested_memory', 'path': REGULY}])
+            transkrypt(d, 'r', 'review', [('Grep', {'pattern': 'x'})], [{'type': 'nested_memory', 'path': REGULY}])
+            k = S.kryterium([agent('b', 'build', 'builder'), agent('k', 'fix:kontrola', 'sceptyk'), agent('r', 'review:correctness', 'reviewer')], d)
+            self.assertEqual(k['czyta_kod_z_regulami'], ['fix:kontrola', 'review:correctness'])
+            self.assertEqual(k['bez_kodu_z_regulami'], [])
+            self.assertTrue(k['zielone'], k)
+
+    def test_rola_z_kodem_bez_odczytu_regul_to_czerwone(self):
+        with tempfile.TemporaryDirectory() as d:
+            transkrypt(d, 'f', 'fix', [])
+            self.assertEqual(S.kryterium([agent('f', 'fix', 'naprawiacz')], d)['kod_bez_regul'], ['fix'])
+
+
+class TestyUsuniete(unittest.TestCase):
+    def test_z_wyniku_domkniecia_kazdej_fazy(self):
+        wyniki = [('build:IU-1', 'a', {'testyUsuniete': ['nie to']}), ('domkniecie:faza-1', 'b', {'testyUsuniete': ['x.test.ts: blok A'], 'bramki': {}}),
+                  ('domkniecie:faza-2', 'c', {'testyUsuniete': []}), ('domkniecie:faza-3', 'd', None)]
+        self.assertEqual(S.testy_usuniete(wyniki), {'domkniecie:faza-1': ['x.test.ts: blok A'], 'domkniecie:faza-2': [], 'domkniecie:faza-3': None})
+
+
+if __name__ == '__main__':
+    unittest.main()
